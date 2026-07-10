@@ -39,4 +39,6 @@ frame = DemoFrame()
 
 frame.Show()
 
+print("Before MainLoop")
 app.MainLoop()
+print("After MainLoop")

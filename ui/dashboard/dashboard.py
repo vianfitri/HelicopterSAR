@@ -12,7 +12,7 @@ from ui.widgets.sea_view import SeaView
 from ui.panels.control_panel import ControlPanel
 from ui.dashboard.dashboard_controller import DashboardController
 from ui.dashboard.dashboard_keyboard import DashboardKeyboard
-from ui.dashboard.dashboard_timer import DashboardTimer
+#from ui.dashboard.dashboard_timer import DashboardTimer
 from ui.dashboard.dashboard_repeat import DashboardRepeat
 
 class Dashboard(BasePanel):
@@ -159,6 +159,20 @@ class Dashboard(BasePanel):
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         # ==================================================
+        # Dashboard Timer
+        # ==================================================
+
+        self.timer = wx.Timer(self)
+
+        self.Bind(
+            wx.EVT_TIMER,
+            self.on_timer,
+            self.timer,
+        )
+
+        self.timer.Start(50)
+
+        # ==================================================
         # Controller
         # ==================================================
 
@@ -222,14 +236,23 @@ class Dashboard(BasePanel):
         event.Skip()
 
     def on_close(self, event):
+         
+        if self.timer.IsRunning():
+             self.timer.Stop()
 
-        if hasattr(self, "timer"):
-            self.timer.stop()
-
-        if hasattr(self, "repeat"):
-            self.repeat.stop()
+        self.repeat.stop()
         
         event.Skip()
+    
+    def on_timer(self, event):
+
+        #state = self.controller.state
+
+        #state.frame += 1
+        #state.elapsed += 1.0 / 60.0
+
+        #self.sea.set_phase(state.elapsed * 2.5)
+        pass
 
     def update(self):
 
