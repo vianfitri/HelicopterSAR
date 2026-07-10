@@ -129,6 +129,16 @@ class Dashboard(BasePanel):
             self.on_hoist_slider,
         )
 
+        self.transversal.btn_minus.Bind(wx.EVT_LEFT_DOWN, self.on_track_minus_down)
+        self.transversal.btn_minus.Bind(wx.EVT_LEFT_UP, self.on_repeat_stop)
+        self.transversal.btn_plus.Bind(wx.EVT_LEFT_DOWN, self.on_track_plus_down)
+        self.transversal.btn_plus.Bind(wx.EVT_LEFT_UP, self.on_repeat_stop)
+
+        self.hoist_control.btn_minus.Bind(wx.EVT_LEFT_DOWN, self.on_hoist_minus_down)
+        self.hoist_control.btn_minus.Bind(wx.EVT_LEFT_UP, self.on_repeat_stop)
+        self.hoist_control.btn_plus.Bind(wx.EVT_LEFT_DOWN, self.on_hoist_plus_down)
+        self.hoist_control.btn_plus.Bind(wx.EVT_LEFT_UP, self.on_repeat_stop)
+
         # ==================================================
         # Controller
         # ==================================================
@@ -164,6 +174,33 @@ class Dashboard(BasePanel):
         #self.hoist.set_value(value)
 
         #self.hoist_control.display.set_value(value)
+
+    # ------------------------------------------------------
+
+    def on_track_minus_down(self, event):
+        
+        self.repeat.start(self.transversal.decrease)
+        event.Skip()
+    
+    def on_track_plus_down(self, event):
+
+        self.repeat.start(self.transversal.increase)
+        event.Skip()
+    
+    def on_hoist_minus_down(self, event):
+
+        self.repeat.start(self.hoist_control.decrease)
+        event.Skip()
+
+    def on_hoist_plus_down(self, event):
+
+        self.repeat.start(self.hoist_control.increase)
+        event.Skip()
+
+    def on_repeat_stop(self, event):
+
+        self.repeat.stop()
+        event.Skip()
 
     def update(self):
 
