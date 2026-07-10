@@ -1,0 +1,177 @@
+from __future__ import annotations
+
+import wx
+
+from ui.base.base_panel import BasePanel
+
+from ui.widgets.track_view import TrackView
+from ui.widgets.hoist_view import HoistView
+
+from ui.panels.control_panel import ControlPanel
+from ui.dashboard.dashboard_controller import DashboardController
+from ui.dashboard.dashboard_keyboard import DashboardKeyboard
+from ui.dashboard.dashboard_timer import DashboardTimer
+from ui.dashboard.dashboard_repeat import DashboardRepeat
+
+
+class Dashboard(BasePanel):
+
+    def __init__(
+        self,
+        parent: wx.Window,
+        **kwargs,
+    ):
+
+        super().__init__(
+            parent,
+            **kwargs,
+        )
+
+    # ------------------------------------------------------
+
+    def initialize(self):
+
+        root = wx.BoxSizer(wx.HORIZONTAL)
+
+        # ==================================================
+        # LEFT
+        # ==================================================
+
+        left = wx.BoxSizer(wx.VERTICAL)
+
+        self.track = TrackView(
+            self,
+            minimum=0,
+            maximum=10,
+            value=5,
+            size=(760, 160),
+        )
+
+        self.transversal = ControlPanel(
+            self,
+            title="TRANSVERSAL POSITION",
+        )
+
+        left.Add(
+            self.track,
+            0,
+            wx.EXPAND | wx.ALL,
+            10,
+        )
+
+        left.Add(
+            self.transversal,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            10,
+        )
+
+        # ==================================================
+        # RIGHT
+        # ==================================================
+
+        right = wx.BoxSizer(wx.VERTICAL)
+
+        self.hoist = HoistView(
+            self,
+            minimum=0,
+            maximum=10,
+            value=5,
+            size=(220, 520),
+        )
+
+        self.hoist_control = ControlPanel(
+            self,
+            title="HOIST LENGTH",
+        )
+
+        right.Add(
+            self.hoist,
+            1,
+            wx.EXPAND | wx.ALL,
+            10,
+        )
+
+        right.Add(
+            self.hoist_control,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            10,
+        )
+
+        # ==================================================
+
+        root.Add(
+            left,
+            1,
+            wx.EXPAND,
+        )
+
+        root.Add(
+            right,
+            0,
+            wx.EXPAND,
+        )
+
+        self.SetSizer(root)
+
+        # ==================================================
+        # Events
+        # ==================================================
+
+        self.transversal.slider.Bind(
+            wx.EVT_SLIDER,
+            self.on_track_slider,
+        )
+
+        self.hoist_control.slider.Bind(
+            wx.EVT_SLIDER,
+            self.on_hoist_slider,
+        )
+
+        # ==================================================
+        # Controller
+        # ==================================================
+
+        self.controller = DashboardController(self)
+
+        self.keyboard = DashboardKeyboard(self)
+
+        self.timer = DashboardTimer(self)
+
+        self.repeat = DashboardRepeat(self)
+
+    # ------------------------------------------------------
+
+    def on_track_slider(self, event):
+
+        value = self.transversal.slider.value
+
+        self.controller.set_track_position(value)
+
+        #self.track.set_position(value)
+
+        #self.transversal.display.set_value(value)
+
+    # ------------------------------------------------------
+
+    def on_hoist_slider(self, event):
+
+        value = self.hoist_control.slider.value
+
+        self.controller.set_hoist_length(value)
+
+        #self.hoist.set_value(value)
+
+        #self.hoist_control.display.set_value(value)
+
+    def update(self):
+
+        #
+        # Refresh custom widget
+        #
+
+        self.track.Refresh(False)
+        self.hoist.Refresh(False)
+        self.transversal.Refresh(False)
+        self.hoist_control.Refresh(False)
