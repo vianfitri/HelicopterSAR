@@ -6,6 +6,7 @@ from ui.base.base_panel import BasePanel
 
 from ui.widgets.track_view import TrackView
 from ui.widgets.hoist_view import HoistView
+from ui.widgets.helicopter_view import HelicopterView
 
 from ui.panels.control_panel import ControlPanel
 from ui.dashboard.dashboard_controller import DashboardController
@@ -38,12 +39,16 @@ class Dashboard(BasePanel):
 
         left = wx.BoxSizer(wx.VERTICAL)
 
-        self.track = TrackView(
+        #self.track = TrackView(
+        #    self,
+        #    minimum=0,
+        #    maximum=10,
+        #    value=5,
+        #    size=(760, 160),
+        #)
+        self.track = HelicopterView(
             self,
-            minimum=0,
-            maximum=10,
-            value=5,
-            size=(760, 160),
+            size=(760, 240)
         )
 
         self.transversal = ControlPanel(

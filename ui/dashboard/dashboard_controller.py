@@ -44,15 +44,19 @@ class DashboardController:
 
     def update_track(self):
 
-        self.dashboard.track.set_position(
-            self.state.track_position
-        )
+        #self.dashboard.track.set_position(
+        #    self.state.track_position
+        #)
 
         self.dashboard.transversal.display.set_value(
             self.state.track_position
         )
 
         self.dashboard.transversal.slider.set_value(
+            self.state.track_position
+        )
+
+        self.dashboard.track.set_track_position(
             self.state.track_position
         )
 
@@ -67,6 +71,10 @@ class DashboardController:
         )
 
         self.dashboard.hoist_control.slider.set_value(
+            self.state.hoist_length
+        )
+
+        self.dashboard.track.set_hoist_length(
             self.state.hoist_length
         )
 
