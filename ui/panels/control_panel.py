@@ -149,17 +149,33 @@ class ControlPanel(BasePanel):
 
     def _on_minus(self, event):
 
-        self.slider.set_value(
-            self.slider.value - 0.1
-        )
+        self.decrease()
 
-        self.display.set_value(
-            self.slider.value
-        )
+        #self.slider.set_value(
+        #    self.slider.value - 0.1
+        #)
+
+        #self.display.set_value(
+        #    self.slider.value
+        #)
 
     # --------------------------------------------------
 
     def _on_plus(self, event):
+
+        self.increase()
+
+        #self.slider.set_value(
+        #    self.slider.value + 0.1
+        #)
+
+        #self.display.set_value(
+        #    self.slider.value
+        #)
+
+    # --------------------------------------------------
+
+    def increase(self):
 
         self.slider.set_value(
             self.slider.value + 0.1
@@ -168,3 +184,17 @@ class ControlPanel(BasePanel):
         self.display.set_value(
             self.slider.value
         )
+
+    # --------------------------------------------------
+
+    def decrease(self):
+
+        self.slider.set_value(
+            self.slider.value - 0.1
+        )
+
+        self.display.set_value(
+            self.slider.value
+        )
+
+    
