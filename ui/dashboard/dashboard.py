@@ -166,7 +166,7 @@ class Dashboard(BasePanel):
 
         self.keyboard = DashboardKeyboard(self)
 
-        self.timer = DashboardTimer(self)
+        #self.timer = DashboardTimer(self)
 
         self.repeat = DashboardRepeat(self)
 
