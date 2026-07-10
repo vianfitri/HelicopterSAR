@@ -7,6 +7,7 @@ from ui.base.base_panel import BasePanel
 from ui.widgets.track_view import TrackView
 from ui.widgets.hoist_view import HoistView
 from ui.widgets.helicopter_view import HelicopterView
+from ui.widgets.sea_view import SeaView
 
 from ui.panels.control_panel import ControlPanel
 from ui.dashboard.dashboard_controller import DashboardController
@@ -48,7 +49,7 @@ class Dashboard(BasePanel):
         #)
         self.track = HelicopterView(
             self,
-            size=(760, 240)
+            size=(760, 240),
         )
 
         self.transversal = ControlPanel(
@@ -56,10 +57,22 @@ class Dashboard(BasePanel):
             title="TRANSVERSAL POSITION",
         )
 
+        self.sea = SeaView(
+            self,
+            size=(760, 220),
+        )
+
         left.Add(
             self.track,
             0,
             wx.EXPAND | wx.ALL,
+            10,
+        )
+
+        left.Add(
+            self.sea,
+            1,
+            wx.EXPAND | wx.LEFT | wx.RIGHT,
             10,
         )
 

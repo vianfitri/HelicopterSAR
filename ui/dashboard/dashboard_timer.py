@@ -32,6 +32,8 @@ class DashboardTimer:
         state.frame += 1
         state.elapsed += 1.0 / self.FPS
 
+        self.dashboard.sea.set_phase(state.elapsed * 2.5)
+
         self.dashboard.update()
 
     # --------------------------------------------------
