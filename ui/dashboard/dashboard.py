@@ -156,6 +156,8 @@ class Dashboard(BasePanel):
         self.hoist_control.btn_plus.Bind(wx.EVT_LEFT_DOWN, self.on_hoist_plus_down)
         self.hoist_control.btn_plus.Bind(wx.EVT_LEFT_UP, self.on_repeat_stop)
 
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
         # ==================================================
         # Controller
         # ==================================================
@@ -217,6 +219,16 @@ class Dashboard(BasePanel):
     def on_repeat_stop(self, event):
 
         self.repeat.stop()
+        event.Skip()
+
+    def on_close(self, event):
+
+        if hasattr(self, "timer"):
+            self.timer.stop()
+
+        if hasattr(self, "repeat"):
+            self.repeat.stop()
+        
         event.Skip()
 
     def update(self):
