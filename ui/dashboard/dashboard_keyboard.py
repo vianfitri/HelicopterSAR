@@ -27,11 +27,11 @@ class DashboardKeyboard:
         if key == wx.WXK_LEFT:
 
             controller.set_track_position(
-                controller.track_position - self.STEP
+                controller.state.track_position - self.STEP
             )
 
             self.dashboard.transversal.slider.set_value(
-                controller.track_position
+                controller.state.track_position
             )
 
             return
@@ -39,11 +39,11 @@ class DashboardKeyboard:
         if key == wx.WXK_RIGHT:
 
             controller.set_track_position(
-                controller.track_position + self.STEP
+                controller.state.track_position + self.STEP
             )
 
             self.dashboard.transversal.slider.set_value(
-                controller.track_position
+                controller.state.track_position
             )
 
             return
@@ -51,11 +51,11 @@ class DashboardKeyboard:
         if key == wx.WXK_UP:
 
             controller.set_hoist_length(
-                controller.hoist_length - self.STEP
+                controller.state.hoist_length - self.STEP
             )
 
             self.dashboard.hoist_control.slider.set_value(
-                controller.hoist_length
+                controller.state.hoist_length
             )
 
             return
@@ -63,11 +63,11 @@ class DashboardKeyboard:
         if key == wx.WXK_DOWN:
 
             controller.set_hoist_length(
-                controller.hoist_length + self.STEP
+                controller.state.hoist_length + self.STEP
             )
 
             self.dashboard.hoist_control.slider.set_value(
-                controller.hoist_length
+                controller.state.hoist_length
             )
 
             return

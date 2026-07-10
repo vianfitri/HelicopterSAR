@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from ui.dashboard.dashboard_state import DashboardState
 
 class DashboardController:
 
     def __init__(self, dashboard):
 
         self.dashboard = dashboard
+        self.state = DashboardState()
 
         self.track_position = 5.0
         self.hoist_length = 5.0
@@ -18,7 +20,9 @@ class DashboardController:
 
     def set_track_position(self, value: float):
 
-        self.track_position = value
+        value = max(self.state.track_minimum, min(self.state.track_maximum, value))
+
+        self.state.track_position = value
 
         self.update_track()
 
@@ -28,7 +32,9 @@ class DashboardController:
 
     def set_hoist_length(self, value: float):
 
-        self.hoist_length = value
+        value = max(self.state.hoist_minimum, min(self.state.hoist_maximum, value))
+
+        self.state.hoist_length = value
 
         self.update_hoist()
 
@@ -39,21 +45,29 @@ class DashboardController:
     def update_track(self):
 
         self.dashboard.track.set_position(
-            self.track_position
+            self.state.track_position
         )
 
         self.dashboard.transversal.display.set_value(
-            self.track_position
+            self.state.track_position
+        )
+
+        self.dashboard.transversal.slider.set_value(
+            self.state.track_position
         )
 
     def update_hoist(self):
 
         self.dashboard.hoist.set_value(
-            self.hoist_length
+            self.state.hoist_length
         )
 
         self.dashboard.hoist_control.display.set_value(
-            self.hoist_length
+            self.state.hoist_length
+        )
+
+        self.dashboard.hoist_control.slider.set_value(
+            self.state.hoist_length
         )
 
     def update_views(self):

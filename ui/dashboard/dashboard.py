@@ -13,7 +13,6 @@ from ui.dashboard.dashboard_keyboard import DashboardKeyboard
 from ui.dashboard.dashboard_timer import DashboardTimer
 from ui.dashboard.dashboard_repeat import DashboardRepeat
 
-
 class Dashboard(BasePanel):
 
     def __init__(

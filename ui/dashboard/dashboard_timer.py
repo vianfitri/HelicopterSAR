@@ -27,6 +27,11 @@ class DashboardTimer:
 
     def on_timer(self, event):
 
+        state = self.dashboard.controller.state
+
+        state.frame += 1
+        state.elapsed += 1.0 / self.FPS
+
         self.dashboard.update()
 
     # --------------------------------------------------
