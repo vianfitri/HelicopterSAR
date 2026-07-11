@@ -108,6 +108,20 @@ class HoistCardPanel(wx.Panel):
         gc.SetPen(gc.CreatePen(wx.Pen(card_border, 1)))
         # Menggambar rounded rectangle utama untuk Card dengan radius sudut 16px
         gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, 16)
+
+        # =========================================================================
+        # TAMBAHAN BARU: Garis Horizontal Pembatas Header & Konten
+        # =========================================================================
+        # Menentukan warna garis pembatas (sedikit terang dari background card agar terlihat elegan)
+        divider_color = wx.Colour(25, 42, 68) 
+        divider_pen = wx.Pen(divider_color, 1) # Ketebalan garis 1 piksel
+        gc.SetPen(gc.CreatePen(divider_pen))
+        
+        # Menggambar garis lurus dari sisi kiri card ke sisi kanan card
+        # Posisi Y diletakkan di koordinat 60 (tepat di bawah teks header yang tingginya ~44px)
+        # Margin kiri dimulai dari 2 piksel dan berhenti 2 piksel sebelum ujung kanan agar pas di dalam border
+        gc.StrokeLine(2, 60, width - 2, 60)
+        # =========================================================================
         
         # 2. Menggambar Data Panel di Sebelah Kanan (Tempat info 7.42 m berada)
         # Sifatnya kustom menggunakan koordinat hardcode statis untuk demonstrasi bentuk
