@@ -99,44 +99,82 @@ class HoistCardPanel(wx.Panel):
             return
 
         width, height = self.GetSize()
+        radius = 16 # Radius kelengkungan card
+        header_height = 60 # Tinggi area header
         
-        # 1. Menggambar Background Card Utama (Warna Gelap Gradasi/Solid)
-        card_bg = wx.Colour(13, 23, 41)
-        card_border = wx.Colour(30, 45, 70)
+        # Warna masing-masing area
+        color_header = wx.Colour(20, 32, 55)    # Warna header (lebih terang)
+        color_content = wx.Colour(13, 23, 41)   # Warna konten (lebih gelap/sesuai gambar)
+        color_border = wx.Colour(30, 45, 70)    # Warna border luar card
         
-        gc.SetBrush(gc.CreateBrush(wx.Brush(card_bg)))
-        gc.SetPen(gc.CreatePen(wx.Pen(card_border, 1)))
-        # Menggambar rounded rectangle utama untuk Card dengan radius sudut 16px
-        gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, 16)
-
-        # =========================================================================
-        # TAMBAHAN BARU: Garis Horizontal Pembatas Header & Konten
-        # =========================================================================
-        # Menentukan warna garis pembatas (sedikit terang dari background card agar terlihat elegan)
-        divider_color = wx.Colour(25, 42, 68) 
-        divider_pen = wx.Pen(divider_color, 1) # Ketebalan garis 1 piksel
+        # -----------------------------------------------------------------
+        # 1. BAGIAN CONTENT (Bawah) & BASE CARD
+        # -----------------------------------------------------------------
+        # Gambar dulu seluruh background card dengan warna Content
+        gc.SetBrush(gc.CreateBrush(wx.Brush(color_content)))
+        gc.SetPen(gc.CreatePen(wx.Pen(color_border, 2)))
+        gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, radius)
+        
+        # -----------------------------------------------------------------
+        # 2. BAGIAN HEADER (Atas) dengan Warna Berbeda
+        # -----------------------------------------------------------------
+        # Kita gambar rounded rectangle kecil khusus area atas untuk mengambil kelengkungan atas
+        gc.SetBrush(gc.CreateBrush(wx.Brush(color_header)))
+        # Hilangkan border pen sementara agar tidak tumpang tindih di dalam
+        gc.SetPen(gc.CreatePen(wx.Pen(color_header, 0))) 
+        gc.DrawRoundedRectangle(1, 1, width - 2, header_height, radius)
+        
+        # Karena langkah di atas membuat sudut bawah header ikut melengkung, 
+        # kita tutup bagian bawah header dengan kotak persegi (sudut siku-siku) 
+        # agar bagian bawah header memotong lurus tepat di garis pembatas.
+        gc.DrawRectangle(1, header_height - radius, width - 2, radius)
+        
+        # -----------------------------------------------------------------
+        # 3. GARIS PEMBATAS & PENGATURAN BORDER HEADER
+        # -----------------------------------------------------------------
+        # Gambar ulang garis border luar khusus untuk area header yang tertimpa tadi
+        gc.SetBrush(gc.CreateBrush(wx.TRANSPARENT_BRUSH))
+        gc.SetPen(gc.CreatePen(wx.Pen(color_border, 2)))
+        gc.DrawRoundedRectangle(1, 1, width - 2, height - 2, radius)
+        
+        # Gambar Garis Horizontal Pembatas tepat di pertemuan warna (Y = 60)
+        divider_pen = wx.Pen(color_border, 1)
         gc.SetPen(gc.CreatePen(divider_pen))
+        gc.StrokeLine(2, header_height, width - 2, header_height)
         
-        # Menggambar garis lurus dari sisi kiri card ke sisi kanan card
-        # Posisi Y diletakkan di koordinat 60 (tepat di bawah teks header yang tingginya ~44px)
-        # Margin kiri dimulai dari 2 piksel dan berhenti 2 piksel sebelum ujung kanan agar pas di dalam border
-        gc.StrokeLine(2, 60, width - 2, 60)
-        # =========================================================================
+        # -----------------------------------------------------------------
+        # 4. ORNAMEN HEADER (Badge Angka 2 & Teks)
+        # -----------------------------------------------------------------
+        # Menggambar badge kotak biru untuk angka "2"
+        badge_bg = wx.Colour(30, 80, 190)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(badge_bg)))
+        gc.SetPen(gc.CreatePen(wx.Pen(badge_bg, 1)))
+        gc.DrawRoundedRectangle(20, 18, 24, 24, 4)
         
-        # 2. Menggambar Data Panel di Sebelah Kanan (Tempat info 7.42 m berada)
-        # Sifatnya kustom menggunakan koordinat hardcode statis untuk demonstrasi bentuk
+        # Angka "2"
+        gc.SetFont(wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.Colour(255, 255, 255))
+        gc.DrawText("2", 28, 22)
+        
+        # Judul "HOIST LENGTH"
+        gc.SetFont(wx.Font(13, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.Colour(240, 240, 240))
+        gc.DrawText("HOIST LENGTH", 55, 21)
+        
+        # -----------------------------------------------------------------
+        # 5. DATA PANEL UTAN KANAN (Info 7.42 m)
+        # -----------------------------------------------------------------
         info_panel_bg = wx.Colour(17, 30, 54)
         gc.SetBrush(gc.CreateBrush(wx.Brush(info_panel_bg)))
-        gc.SetPen(gc.CreatePen(wx.Pen(wx.Colour(25, 40, 70), 1)))
-        gc.DrawRoundedRectangle(width - 190, 110, 170, 180, 12)
+        info_pen = wx.Pen(wx.Colour(25, 40, 70), 1)
+        gc.SetPen(gc.CreatePen(info_pen))
+        gc.DrawRoundedRectangle(width - 190, 120, 170, 180, 12)
         
-        # Menggambar teks statis di dalam Info Panel kanan
+        # Teks Info Panel
         gc.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.Colour(120, 140, 170))
-        gc.DrawText("HOIST LENGTH", width - 180, 120)
+        gc.DrawText("HOIST LENGTH", width - 180, 130)
         
-        # Angka Besar "7.42 m"
+        # Angka "7.42 m"
         gc.SetFont(wx.Font(24, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD), wx.Colour(40, 170, 255))
-        gc.DrawText("7.42 m", width - 180, 140)
+        gc.DrawText("7.42 m", width - 180, 150)
 
 
 class MainFrame(wx.Frame):
