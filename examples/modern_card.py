@@ -71,8 +71,8 @@ class ModernCard(wx.Control):
 
         # Shadow offset configuration
         shadow_offset_x = 0
-        shadow_offset_y = 2
-        shadow_blur = 1
+        shadow_offset_y = 0
+        shadow_blur = 1.01
 
         # 1. Gambar Soft Drop Shadow di sekeliling card
         shadow_path = gc.CreatePath()
@@ -121,6 +121,7 @@ class DemoFrame(wx.Frame):
         # Panel utama diberi background berwarna untuk membuktikan transparansi corner
         panel = wx.Panel(self)
         panel.SetBackgroundColour("#F4F6F9")
+        #panel.SetBackgroundColour("#B39E2A")
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
