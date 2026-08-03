@@ -12,7 +12,7 @@ class ModernCard(wx.Control):
                  pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
         
         # Menggunakan wx.TRANSPARENT_WINDOW agar area luar corner transparan terhadap parent
-        super().__init__(parent, id, pos=pos, size=size, style=style | wx.TRANSPARENT_WINDOW)
+        super().__init__(parent, id, pos=pos, size=size, style=style | wx.TRANSPARENT_WINDOW | wx.BORDER_NONE)
 
         # Config Parameter
         self._title = title
