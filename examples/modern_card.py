@@ -1,644 +1,173 @@
-"""
-modern_card.py
-Reusable Modern Card
-Compatible : wxPython 4.2.5
-
-Author : ChatGPT
-"""
-
-import math
 import wx
 
-
-# ============================================================
-# Default Theme
-# ============================================================
-
-class CardTheme:
-
-    BACKGROUND = wx.Colour(255, 255, 255)
-
-    BORDER = wx.Colour(210, 214, 220)
-
-    HEADER = wx.Colour(250, 250, 250)
-
-    TEXT = wx.Colour(40, 40, 40)
-
-    SUBTEXT = wx.Colour(110, 110, 110)
-
-    ACCENT = wx.Colour(255, 130, 0)
-
-    SHADOW = wx.Colour(0, 0, 0, 20)
-
-
-# ============================================================
-# Utility
-# ============================================================
-
-def lighten(colour, amount):
-
-    r = min(255, colour.Red() + amount)
-    g = min(255, colour.Green() + amount)
-    b = min(255, colour.Blue() + amount)
-
-    return wx.Colour(r, g, b)
-
-
-def darken(colour, amount):
-
-    r = max(0, colour.Red() - amount)
-    g = max(0, colour.Green() - amount)
-    b = max(0, colour.Blue() - amount)
-
-    return wx.Colour(r, g, b)
-
-
-# ============================================================
-# Shadow Painter
-# ============================================================
-
-class ShadowPainter:
+class ModernCard(wx.Control):
     """
-    Fake gaussian shadow.
-    Dibuat dari beberapa rounded rectangle
-    dengan alpha yang semakin kecil.
-
-    Tidak membutuhkan bitmap maupun image blur.
+    Komponen Custom Card Reusable untuk wxPython.
+    Memiliki border melengkung, shadow halus, title, dan area konten khusus.
     """
+    def __init__(self, parent, id=wx.ID_ANY, title="Card Title", 
+                 bg_color="#FFFFFF", border_color="#E0E0E0", 
+                 title_color="#212121", line_color="#EEEEEE",
+                 corner_radius=12, title_font=None, 
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
+        
+        # Menggunakan wx.TRANSPARENT_WINDOW agar area luar corner transparan terhadap parent
+        super().__init__(parent, id, pos=pos, size=size, style=style | wx.TRANSPARENT_WINDOW)
 
-    @staticmethod
-    def draw(gc,
-             x,
-             y,
-             w,
-             h,
-             radius,
-             shadow_size=8):
+        # Config Parameter
+        self._title = title
+        self._bg_color = wx.Colour(bg_color)
+        self._border_color = wx.Colour(border_color)
+        self._title_color = wx.Colour(title_color)
+        self._line_color = wx.Colour(line_color)
+        self._corner_radius = corner_radius
+        self._title_font = title_font or wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
 
-        if shadow_size <= 0:
+        # Internal Padding & Dimension Metrics
+        self._padding = 16
+        self._title_height = 40
+        self._shadow_size = 6  # Space untuk efek bayangan di luar card
+
+        # Sizer utama komponen (Card Control)
+        self._main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Space kosong atas (Padding + Title Height)
+        self._main_sizer.AddSpacer(self._title_height + self._padding)
+        
+        # Container Sizer khusus tempat menampung widget anak (Content Area)
+        self._content_sizer = wx.BoxSizer(wx.VERTICAL)
+        self._main_sizer.Add(self._content_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, self._padding)
+        
+        self.SetSizer(self._main_sizer)
+
+        # Event Bindings
+        self.Bind(wx.EVT_PAINT, self._on_paint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)  # Mencegah flicker
+
+    def GetContentSizer(self):
+        """Mengembalikan sizer area konten agar widget luar bisa dimasukkan ke dalam card."""
+        return self._content_sizer
+
+    def AddContent(self, widget, proportion=0, flag=wx.EXPAND, border=0):
+        """Helper praktis untuk menambahkan widget langsung ke area konten card."""
+        self._content_sizer.Add(widget, proportion, flag, border)
+        self.Layout()
+
+    def _on_paint(self, event):
+        dc = wx.PaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+        if not gc:
             return
 
-        for i in range(shadow_size):
+        gc.SetAntialiasMode(wx.ANTIALIAS_DEFAULT)
+        width, height = self.GetSize()
 
-            alpha = int(
-                28 *
-                (1.0 - (i / float(shadow_size)))
-            )
+        # Margin offset untuk memberi ruang rendering shadow di luar border card
+        s = self._shadow_size
+        card_x = s
+        card_y = s
+        card_w = width - (2 * s)
+        card_h = height - (2 * s)
 
-            c = wx.Colour(0, 0, 0, alpha)
+        # 1. Gambar Soft Drop Shadow di sekeliling card
+        shadow_path = gc.CreatePath()
+        shadow_path.AddRoundedRectangle(card_x, card_y + 2, card_w, card_h, self._corner_radius)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 15)))) # Black transparan
+        gc.SetPen(wx.NullPen)
+        gc.FillPath(shadow_path)
 
-            path = gc.CreatePath()
+        # 2. Gambar Background Utama Card
+        card_path = gc.CreatePath()
+        card_path.AddRoundedRectangle(card_x, card_y, card_w, card_h, self._corner_radius)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(self._bg_color)))
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._border_color).Width(1)))
+        gc.DrawPath(card_path)
 
-            expand = shadow_size - i
+        # 3. Gambar Text Title
+        gc.SetFont(self._title_font, self._title_color)
+        text_x = card_x + self._padding
+        text_y = card_y + (self._title_height // 2) - 8
+        gc.DrawText(self._title, text_x, text_y)
 
-            path.AddRoundedRectangle(
-                x - expand,
-                y - expand,
-                w + expand * 2,
-                h + expand * 2,
-                radius + expand
-            )
+        # 4. Gambar Border Pembatas + Soft Line Shadow di Bawah Title
+        line_y = card_y + self._title_height
+        
+        # Soft Shadow Line (Bayangan halus di bawah garis)
+        line_shadow_path = gc.CreatePath()
+        line_shadow_path.MoveToPoint(card_x + 1, line_y + 1)
+        line_shadow_path.AddLineToPoint(card_x + card_w - 1, line_y + 1)
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour(0, 0, 0, 10)).Width(2)))
+        gc.StrokePath(line_shadow_path)
 
-            gc.SetPen(wx.TRANSPARENT_PEN)
-            gc.SetBrush(wx.Brush(c))
+        # Garis Pembatas Utama (Subtle Border)
+        line_path = gc.CreatePath()
+        line_path.MoveToPoint(card_x + 1, line_y)
+        line_path.AddLineToPoint(card_x + card_w - 1, line_y)
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._line_color).Width(1)))
+        gc.StrokePath(line_path)
 
-            gc.FillPath(path)
+# ----------------------------------------------------------------------
+# CONTOH PENGGUNAAN / DEMO APPLICATION
+# ----------------------------------------------------------------------
+class DemoFrame(wx.Frame):
+    def __init__(self):
+        super().__init__(None, title="Modern Card Demo", size=(800, 500))
+        
+        # Panel utama diberi background berwarna untuk membuktikan transparansi corner
+        panel = wx.Panel(self)
+        panel.SetBackgroundColour("#F4F6F9")
 
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-# ============================================================
-# Content Panel
-# ============================================================
-
-class CardContent(wx.Panel):
-    """
-    Panel tempat user meletakkan widget.
-
-    Tidak menggambar background.
-    Background digambar oleh ModernCard.
-    """
-
-    def __init__(self, parent):
-
-        super().__init__(parent)
-
-        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
-
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.onErase)
-
-        self.Bind(wx.EVT_PAINT, self.onPaint)
-
-    def onErase(self, event):
-        pass
-
-    def onPaint(self, event):
-
-        dc = wx.AutoBufferedPaintDC(self)
-
-        dc.SetBackground(
-            wx.Brush(
-                self.GetParent().background_colour
-            )
+        # Card 1: Tema Terang (Light Mode)
+        card1 = ModernCard(
+            panel, 
+            title="User Profile", 
+            bg_color="#FFFFFF", 
+            border_color="#D1D5DB", 
+            title_color="#1F2937",
+            line_color="#E5E7EB",
+            corner_radius=14
         )
+        
+        # Menambahkan isi widget ke Card 1
+        card1.AddContent(wx.StaticText(card1, label="Name: John Doe"))
+        card1.AddContent(wx.StaticText(card1, label="Role: Software Engineer"), border=5, flag=wx.TOP)
+        card1.AddContent(wx.Button(card1, label="Edit Profile"), border=15, flag=wx.TOP | wx.EXPAND)
 
-        dc.Clear()
-
-
-# ============================================================
-# Modern Card
-# ============================================================
-
-class ModernCard(wx.Panel):
-
-    HEADER_LEFT = 0
-    HEADER_CENTER = 1
-    HEADER_RIGHT = 2
-
-    def __init__(
-            self,
-            parent,
-
-            title="Card",
-
-            icon=None,
-
-            size=(-1, -1),
-
-            radius=14,
-
-            padding=12,
-
-            header_height=42,
-
-            shadow_size=8,
-
-            show_header=True,
-
-            background_colour=CardTheme.BACKGROUND,
-
-            border_colour=CardTheme.BORDER,
-
-            header_colour=CardTheme.HEADER,
-
-            text_colour=CardTheme.TEXT,
-
-            accent_colour=CardTheme.ACCENT,
-
-            font=None,
-    ):
-
-        super().__init__(
-            parent,
-            size=size,
-            style=wx.BORDER_NONE
+        # Card 2: Tema Gelap / Modern Dark Accent
+        custom_font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        card2 = ModernCard(
+            panel, 
+            title="System Analytics", 
+            bg_color="#1E1E2E", 
+            border_color="#313244", 
+            title_color="#CDD6F4", 
+            line_color="#45475A",
+            corner_radius=16,
+            title_font=custom_font
         )
-
-        # ------------------------------------------
-
-        self.SetBackgroundStyle(
-            wx.BG_STYLE_PAINT
-        )
-
-        self.SetDoubleBuffered(True)
-
-        # ------------------------------------------
-
-        if font is None:
-
-            self.font = wx.Font(
-                10,
-                wx.FONTFAMILY_DEFAULT,
-                wx.FONTSTYLE_NORMAL,
-                wx.FONTWEIGHT_BOLD,
-                False,
-                "Segoe UI"
-            )
-
-        else:
-
-            self.font = font
-
-        # ------------------------------------------
-
-        self.title = title
-
-        self.icon = icon
-
-        self.radius = radius
-
-        self.padding = padding
-
-        self.header_height = header_height
-
-        self.shadow_size = shadow_size
-
-        self.show_header = show_header
-
-        self.header_alignment = ModernCard.HEADER_LEFT
-
-        # ------------------------------------------
-
-        self.background_colour = background_colour
-
-        self.border_colour = border_colour
-
-        self.header_colour = header_colour
-
-        self.text_colour = text_colour
-
-        self.accent_colour = accent_colour
-
-        self.border_width = 1
-
-        self.show_border = True
-
-        self.show_shadow = True
-
-        self.show_accent = False
-
-        self.hover = False
-
-        self.hover_colour = lighten(
-            background_colour,
-            6
-        )
-
-        # dibuat di bagian berikutnya:
-        # self.content
-        # layout
-        # event binding
-
-            # -------------------------------------------------------
-        # Content Panel
-        # -------------------------------------------------------
-
-        self.content = CardContent(self)
-
-        # Content panel menggunakan warna yang sama dengan card
-        self.content.SetBackgroundColour(
-            self.background_colour
-        )
-
-        # -------------------------------------------------------
-        # Layout
-        # -------------------------------------------------------
-
-        self._build_layout()
-
-        # -------------------------------------------------------
-        # Event
-        # -------------------------------------------------------
-
-        self.Bind(wx.EVT_PAINT, self.onPaint)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.onEraseBackground)
-        self.Bind(wx.EVT_SIZE, self.onSize)
-
-        self.Bind(wx.EVT_ENTER_WINDOW, self.onMouseEnter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.onMouseLeave)
-
-    # ============================================================
-    # Layout
-    # ============================================================
-
-    def _build_layout(self):
-
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-
-        top = self.padding
-
-        if self.show_header:
-            top += self.header_height
-
-        self.mainSizer.AddSpacer(top)
-
-        self.mainSizer.Add(
-            self.content,
-            1,
-            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
-            self.padding
-        )
-
-        self.SetSizer(self.mainSizer)
-
-    # ============================================================
-    # Public API
-    # ============================================================
-
-    @property
-    def Content(self):
-        """
-        Panel yang dapat diisi widget.
-        """
-
-        return self.content
-
-    # ------------------------------------------------------------
-
-    def GetContentPanel(self):
-        return self.content
-
-    # ------------------------------------------------------------
-
-    def SetContentSizer(self, sizer):
-
-        self.content.SetSizer(sizer)
-
-    # ------------------------------------------------------------
-
-    def SetPadding(self, padding):
-
-        self.padding = padding
-
-        self.mainSizer.Clear(False)
-
-        self._build_layout()
-
-        self.Layout()
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetRadius(self, radius):
-
-        self.radius = radius
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetShadowSize(self, size):
-
-        self.shadow_size = max(0, size)
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def EnableShadow(self, enable=True):
-
-        self.show_shadow = enable
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def EnableBorder(self, enable=True):
-
-        self.show_border = enable
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def EnableAccent(self, enable=True):
-
-        self.show_accent = enable
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetBorderWidth(self, width):
-
-        self.border_width = width
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetBackgroundColour(self, colour):
-
-        self.background_colour = colour
-
-        if hasattr(self, "content"):
-            self.content.SetBackgroundColour(colour)
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetBorderColour(self, colour):
-
-        self.border_colour = colour
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetAccentColour(self, colour):
-
-        self.accent_colour = colour
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetHeaderColour(self, colour):
-
-        self.header_colour = colour
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetTitleColour(self, colour):
-
-        self.text_colour = colour
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetHeaderHeight(self, height):
-
-        self.header_height = height
-
-        self.mainSizer.Clear(False)
-
-        self._build_layout()
-
-        self.Layout()
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def ShowHeader(self, show=True):
-
-        self.show_header = show
-
-        self.mainSizer.Clear(False)
-
-        self._build_layout()
-
-        self.Layout()
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetTitle(self, title):
-
-        self.title = title
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetTitleFont(self, font):
-
-        self.font = font
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetTitleAlignment(self, alignment):
-
-        self.header_alignment = alignment
-
-        self.Refresh()
-
-    # ------------------------------------------------------------
-
-    def SetIcon(self, bitmap):
-
-        self.icon = bitmap
-
-        self.Refresh()
-
-    # ============================================================
-    # Mouse
-    # ============================================================
-
-    def onMouseEnter(self, event):
-
-        self.hover = True
-
-        self.Refresh()
-
-        event.Skip()
-
-    # ------------------------------------------------------------
-
-    def onMouseLeave(self, event):
-
-        self.hover = False
-
-        self.Refresh()
-
-        event.Skip()
-
-    # ============================================================
-    # Window Event
-    # ============================================================
-
-    def onEraseBackground(self, event):
-        """
-        Menghindari flicker.
-        """
-        pass
-
-    # ------------------------------------------------------------
-
-    def onSize(self, event):
-
-        self.Refresh()
-
-        event.Skip()
-
-    # ============================================================
-    # Drawing Helper
-    # ============================================================
-
-    def _createRoundedPath(
-            self,
-            gc,
-            x,
-            y,
-            w,
-            h,
-            radius):
-
-        path = gc.CreatePath()
-
-        path.AddRoundedRectangle(
-            x,
-            y,
-            w,
-            h,
-            radius
-        )
-
-        return path
-
-    # ------------------------------------------------------------
-
-    def _drawRoundedRect(
-            self,
-            gc,
-            x,
-            y,
-            w,
-            h,
-            radius,
-            colour):
-
-        path = self._createRoundedPath(
-            gc,
-            x,
-            y,
-            w,
-            h,
-            radius
-        )
-
-        gc.SetPen(wx.TRANSPARENT_PEN)
-        gc.SetBrush(wx.Brush(colour))
-
-        gc.FillPath(path)
-
-    # ------------------------------------------------------------
-
-    def _drawBorder(
-            self,
-            gc,
-            x,
-            y,
-            w,
-            h):
-
-        if not self.show_border:
-            return
-
-        path = self._createRoundedPath(
-            gc,
-            x,
-            y,
-            w,
-            h,
-            self.radius
-        )
-
-        gc.SetBrush(wx.TRANSPARENT_BRUSH)
-
-        gc.SetPen(
-            wx.Pen(
-                self.border_colour,
-                self.border_width
-            )
-        )
-
-        gc.DrawPath(path)
-
-    # ============================================================
-    # Paint
-    # ============================================================
-
-    def onPaint(self, event):
-        """
-        Diimplementasikan penuh pada Bagian 3.
-        """
-        pass
-
-    
+        
+        # Menambahkan isi widget ke Card 2
+        lbl = wx.StaticText(card2, label="Server Status: Operational")
+        lbl.SetForegroundColour("#A6E3A1")
+        card2.AddContent(lbl)
+        
+        gauge = wx.Gauge(card2, range=100)
+        gauge.SetValue(75)
+        card2.AddContent(gauge, border=10, flag=wx.TOP | wx.EXPAND)
+        
+        card2.AddContent(wx.CheckBox(card2, label="Enable Realtime Monitoring"), border=15, flag=wx.TOP)
+
+        # Layout Sizer Frame
+        main_sizer.Add(card1, 1, wx.EXPAND | wx.ALL, 20)
+        main_sizer.Add(card2, 1, wx.EXPAND | wx.ALL, 20)
+        
+        panel.SetSizer(main_sizer)
+        self.Center()
+
+if __name__ == "__main__":
+    app = wx.App()
+    frame = DemoFrame()
+    frame.Show()
+    app.MainLoop()
