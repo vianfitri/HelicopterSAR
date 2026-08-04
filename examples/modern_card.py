@@ -76,8 +76,9 @@ class ModernCard(wx.Control):
 
         # 1. Gambar Soft Drop Shadow di sekeliling card
         shadow_path = gc.CreatePath()
-        shadow_path.AddRoundedRectangle(card_x + shadow_offset_x, card_y + shadow_offset_y, card_w * shadow_blur, card_h * shadow_blur, self._corner_radius)
-        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 6)))) # Black transparan
+        #shadow_path.AddRoundedRectangle(card_x + shadow_offset_x, card_y + shadow_offset_y, card_w * shadow_blur, card_h * shadow_blur, self._corner_radius)
+        shadow_path.AddRoundedRectangle(card_x + 1, card_y + 1, card_w + 4, card_h + 4, self._corner_radius)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 8)))) # Black transparan
         #gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour("#FF0000")).Width(1)))
         gc.SetPen(wx.NullPen)
         gc.FillPath(shadow_path)
@@ -124,8 +125,8 @@ class DemoFrame(wx.Frame):
         
         # Panel utama diberi background berwarna untuk membuktikan transparansi corner
         panel = wx.Panel(self)
-        panel.SetBackgroundColour("#7B9AC9")
-        #panel.SetBackgroundColour("#F4F6F9")
+        #panel.SetBackgroundColour("#7B9AC9")
+        panel.SetBackgroundColour("#F4F6F9")
         #panel.SetBackgroundColour("#B39E2A")
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
