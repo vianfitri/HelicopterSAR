@@ -90,6 +90,8 @@ class ModernCard(wx.Control):
         gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._border_color).Width(1)))
         gc.DrawPath(card_path)
 
+        print(f"width: {width}, height: {height}, card_x: {card_x}, card_y: {card_y}, card_w: {card_w}, card_h: {card_h}")
+
         # 3. Gambar Text Title
         gc.SetFont(self._title_font, self._title_color)
         text_x = card_x + self._padding
@@ -101,15 +103,15 @@ class ModernCard(wx.Control):
         
         # Soft Shadow Line (Bayangan halus di bawah garis)
         line_shadow_path = gc.CreatePath()
-        line_shadow_path.MoveToPoint(card_x + 1, line_y + 1)
-        line_shadow_path.AddLineToPoint(card_x + card_w - 1, line_y + 1)
+        line_shadow_path.MoveToPoint(card_x + 6, line_y + 1)
+        line_shadow_path.AddLineToPoint(card_x + card_w - 6, line_y + 1)
         gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour(0, 0, 0, 10)).Width(2)))
         gc.StrokePath(line_shadow_path)
 
         # Garis Pembatas Utama (Subtle Border)
         line_path = gc.CreatePath()
-        line_path.MoveToPoint(card_x + 1, line_y)
-        line_path.AddLineToPoint(card_x + card_w - 1, line_y)
+        line_path.MoveToPoint(card_x + 6, line_y)
+        line_path.AddLineToPoint(card_x + card_w - 6, line_y)
         gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._line_color).Width(1)))
         gc.StrokePath(line_path)
 
@@ -122,7 +124,8 @@ class DemoFrame(wx.Frame):
         
         # Panel utama diberi background berwarna untuk membuktikan transparansi corner
         panel = wx.Panel(self)
-        panel.SetBackgroundColour("#F4F6F9")
+        panel.SetBackgroundColour("#7B9AC9")
+        #panel.SetBackgroundColour("#F4F6F9")
         #panel.SetBackgroundColour("#B39E2A")
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
