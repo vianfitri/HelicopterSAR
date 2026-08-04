@@ -138,8 +138,10 @@ class DemoFrame(wx.Frame):
         
         # Menambahkan isi widget ke Card 1
         lbl_name = wx.StaticText(card1, label="Name: John Doe")
+        lbl_name.SetBackgroundColour(card1._bg_color)
         lbl_name.SetForegroundColour("#000000")
         lbl_role = wx.StaticText(card1, label="Role: Software Engineer")
+        lbl_role.SetBackgroundColour(card1._bg_color)
         lbl_role.SetForegroundColour("#000000")
         card1.AddContent(lbl_name)
         card1.AddContent(lbl_role, border=5, flag=wx.TOP)
@@ -160,6 +162,7 @@ class DemoFrame(wx.Frame):
         
         # Menambahkan isi widget ke Card 2
         lbl = wx.StaticText(card2, label="Server Status: Operational")
+        lbl.SetBackgroundColour(card2._bg_color)
         lbl.SetForegroundColour("#A6E3A1")
         card2.AddContent(lbl)
         
