@@ -70,14 +70,14 @@ class ModernCard(wx.Control):
         card_h = height - (2 * s)
 
         # Shadow offset configuration
-        shadow_offset_x = 0
+        shadow_offset_x = 1
         shadow_offset_y = 0
         shadow_blur = 1.01
 
         # 1. Gambar Soft Drop Shadow di sekeliling card
         shadow_path = gc.CreatePath()
         shadow_path.AddRoundedRectangle(card_x + shadow_offset_x, card_y + shadow_offset_y, card_w * shadow_blur, card_h * shadow_blur, self._corner_radius)
-        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 15)))) # Black transparan
+        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 6)))) # Black transparan
         gc.SetPen(wx.NullPen)
         gc.FillPath(shadow_path)
 
