@@ -137,8 +137,12 @@ class DemoFrame(wx.Frame):
         )
         
         # Menambahkan isi widget ke Card 1
-        card1.AddContent(wx.StaticText(card1, label="Name: John Doe"))
-        card1.AddContent(wx.StaticText(card1, label="Role: Software Engineer"), border=5, flag=wx.TOP)
+        lbl_name = wx.StaticText(card1, label="Name: John Doe")
+        lbl_name.SetForegroundColour("#000000")
+        lbl_role = wx.StaticText(card1, label="Role: Software Engineer")
+        lbl_role.SetForegroundColour("#000000")
+        card1.AddContent(lbl_name)
+        card1.AddContent(lbl_role, border=5, flag=wx.TOP)
         card1.AddContent(wx.Button(card1, label="Edit Profile"), border=15, flag=wx.TOP | wx.EXPAND)
 
         # Card 2: Tema Gelap / Modern Dark Accent
