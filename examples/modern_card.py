@@ -78,8 +78,10 @@ class ModernCard(wx.Control):
         shadow_path = gc.CreatePath()
         shadow_path.AddRoundedRectangle(card_x + shadow_offset_x, card_y + shadow_offset_y, card_w * shadow_blur, card_h * shadow_blur, self._corner_radius)
         gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 6)))) # Black transparan
-        gc.SetPen(wx.NullPen)
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour("#FF0000")).Width(1)))
+        #gc.SetPen(wx.NullPen)
         gc.FillPath(shadow_path)
+        gc.DrawPath(shadow_path)
 
         # 2. Gambar Background Utama Card
         card_path = gc.CreatePath()
