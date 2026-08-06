@@ -73,6 +73,121 @@ class SidebarButton(wx.Control):
             (h - th) / 2
         )
 
+class ModernCard(wx.Control):
+    """
+    Komponen Custom Card Reusable untuk wxPython.
+    Memiliki border melengkung, shadow halus, title, dan area konten khusus.
+    """
+    def __init__(self, parent, id=wx.ID_ANY, title="Card Title", 
+                 bg_color="#FFFFFF", border_color="#E0E0E0", 
+                 title_color="#212121", line_color="#EEEEEE",
+                 corner_radius=12, title_font=None, 
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
+        
+        # Menggunakan wx.TRANSPARENT_WINDOW agar area luar corner transparan terhadap parent
+        super().__init__(parent, id, pos=pos, size=size, style=style | wx.TRANSPARENT_WINDOW | wx.BORDER_NONE)
+
+        # Config Parameter
+        self._title = title
+        self._bg_color = wx.Colour(bg_color)
+        self._border_color = wx.Colour(border_color)
+        self._title_color = wx.Colour(title_color)
+        self._line_color = wx.Colour(line_color)
+        self._corner_radius = corner_radius
+        self._title_font = title_font or wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+
+        # Internal Padding & Dimension Metrics
+        self._padding = 16
+        self._title_height = 40
+        self._shadow_size = 6  # Space untuk efek bayangan di luar card
+
+        # Sizer utama komponen (Card Control)
+        self._main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Space kosong atas (Padding + Title Height)
+        self._main_sizer.AddSpacer(self._title_height + self._padding)
+        
+        # Container Sizer khusus tempat menampung widget anak (Content Area)
+        self._content_sizer = wx.BoxSizer(wx.VERTICAL)
+        self._main_sizer.Add(self._content_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, self._padding)
+        
+        self.SetSizer(self._main_sizer)
+
+        # Event Bindings
+        self.Bind(wx.EVT_PAINT, self._on_paint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)  # Mencegah flicker
+
+    def GetContentSizer(self):
+        """Mengembalikan sizer area konten agar widget luar bisa dimasukkan ke dalam card."""
+        return self._content_sizer
+
+    def AddContent(self, widget, proportion=0, flag=wx.EXPAND, border=0):
+        """Helper praktis untuk menambahkan widget langsung ke area konten card."""
+        self._content_sizer.Add(widget, proportion, flag, border)
+        self.Layout()
+
+    def _on_paint(self, event):
+        dc = wx.PaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+        if not gc:
+            return
+
+        gc.SetAntialiasMode(wx.ANTIALIAS_DEFAULT)
+        width, height = self.GetSize()
+
+        # Margin offset untuk memberi ruang rendering shadow di luar border card
+        s = self._shadow_size
+        card_x = s
+        card_y = s
+        card_w = width - (2 * s)
+        card_h = height - (2 * s)
+
+        # Shadow offset configuration
+        shadow_offset_x = 1
+        shadow_offset_y = 0
+        shadow_blur = 1.01
+
+        # 1. Gambar Soft Drop Shadow di sekeliling card
+        shadow_path = gc.CreatePath()
+        #shadow_path.AddRoundedRectangle(card_x + shadow_offset_x, card_y + shadow_offset_y, card_w * shadow_blur, card_h * shadow_blur, self._corner_radius)
+        shadow_path.AddRoundedRectangle(card_x + 1, card_y + 1, card_w + 4, card_h + 4, self._corner_radius)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0, 0, 0, 8)))) # Black transparan
+        #gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour("#FF0000")).Width(1)))
+        gc.SetPen(wx.NullPen)
+        gc.FillPath(shadow_path)
+        #gc.DrawPath(shadow_path)
+
+        # 2. Gambar Background Utama Card
+        card_path = gc.CreatePath()
+        card_path.AddRoundedRectangle(card_x, card_y, card_w, card_h, self._corner_radius)
+        gc.SetBrush(gc.CreateBrush(wx.Brush(self._bg_color)))
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._border_color).Width(1)))
+        gc.DrawPath(card_path)
+
+        #print(f"width: {width}, height: {height}, card_x: {card_x}, card_y: {card_y}, card_w: {card_w}, card_h: {card_h}")
+
+        # 3. Gambar Text Title
+        gc.SetFont(self._title_font, self._title_color)
+        text_x = card_x + self._padding
+        text_y = card_y + (self._title_height // 2) - 8
+        gc.DrawText(self._title, text_x, text_y)
+
+        # 4. Gambar Border Pembatas + Soft Line Shadow di Bawah Title
+        line_y = card_y + self._title_height
+        
+        # Soft Shadow Line (Bayangan halus di bawah garis)
+        line_shadow_path = gc.CreatePath()
+        line_shadow_path.MoveToPoint(card_x + 6, line_y + 1)
+        line_shadow_path.AddLineToPoint(card_x + card_w - 6, line_y + 1)
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(wx.Colour(0, 0, 0, 10)).Width(2)))
+        gc.StrokePath(line_shadow_path)
+
+        # Garis Pembatas Utama (Subtle Border)
+        line_path = gc.CreatePath()
+        line_path.MoveToPoint(card_x + 6, line_y)
+        line_path.AddLineToPoint(card_x + card_w - 6, line_y)
+        gc.SetPen(gc.CreatePen(wx.GraphicsPenInfo(self._line_color).Width(1)))
+        gc.StrokePath(line_path)
 
 # ==========================
 # Main Frame
@@ -159,6 +274,33 @@ class Dashboard(wx.Frame):
 
         content = wx.Panel(panel)
         content.SetBackgroundColour(BG_COLOR)
+
+        contentSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        card1 = ModernCard(
+            content, 
+            title="Helicopter Position", 
+            bg_color="#FFFFFF", 
+            border_color="#D1D5DB", 
+            title_color="#1F2937",
+            line_color="#E5E7EB",
+            corner_radius=14
+        )
+
+        card2 = ModernCard(
+            content, 
+            title="Hoist Length", 
+            bg_color="#FFFFFF", 
+            border_color="#D1D5DB", 
+            title_color="#1F2937",
+            line_color="#E5E7EB",
+            corner_radius=14
+        )
+
+        contentSizer.Add(card1, proportion=7, flag=wx.EXPAND)
+        contentSizer.Add(card2, proportion=3, flag=wx.EXPAND)
+
+        content.SetSizer(contentSizer)
 
         body.Add(sidebar, 0, wx.EXPAND)
         body.Add(content, 1, wx.EXPAND | wx.ALL, 15)
