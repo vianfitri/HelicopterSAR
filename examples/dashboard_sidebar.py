@@ -94,12 +94,12 @@ class CanvasHelicopter(wx.Panel):
         )
         self.heli_bitmap = wx.Bitmap(heli_image)
 
-        # Posisi gambar
+        # Posisi gambar heli
         self.pos_x = 100
         self.pos_y = 100
 
         # Load gambar Base
-        self.base_imageScale = 0.2
+        self.base_imageScale = 0.25
         base_image = wx.Image("examples/images/4.png")
         base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
         base_img_height = int(round(base_image.GetHeight() * self.base_imageScale))
@@ -109,6 +109,10 @@ class CanvasHelicopter(wx.Panel):
             wx.IMAGE_QUALITY_HIGH
         )
         self.base_bitmap = wx.Bitmap(base_image)
+
+        # posisi gambar base
+        self.base_pos_x = 100
+        self.base_pos_y = 100
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -124,6 +128,9 @@ class CanvasHelicopter(wx.Panel):
 
         self.pos_x = self.clientSizeWidth - 10 - self.heli_bitmap.GetWidth()
         self.pos_y = 10
+
+        self.base_pos_x = (self.clientSizeWidth - self.base_bitmap.GetWidth()) / 2
+        self.base_pos_y = 100
 
         #print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
         
@@ -144,13 +151,13 @@ class CanvasHelicopter(wx.Panel):
         gc.DrawRectangle(0, 0, width, height)
 
         # Garis lintasan
-        gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 2))
-        gc.StrokeLine(
-            20,
-            height // 2,
-            width - 20,
-            height // 2
-        )
+        #gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 2))
+        #gc.StrokeLine(
+        #    20,
+        #    height // 2,
+        #    width - 20,
+        #    height // 2
+        #)
 
         # Gambar helicopter
         gc.DrawBitmap(
@@ -161,11 +168,21 @@ class CanvasHelicopter(wx.Panel):
             self.heli_bitmap.GetHeight()
         )
 
+        # Gambar base
+        gc.DrawBitmap(
+            self.base_bitmap,
+            self.base_pos_x,
+            self.base_pos_y,
+            self.base_bitmap.GetWidth(),
+            self.base_bitmap.GetHeight()
+        )
+
         # draw border bitmap
         gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
         gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
         gc.DrawRectangle(self.pos_x, self.pos_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
+        gc.DrawRectangle(self.base_pos_x, self.base_pos_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
 
 # ==========================
 # Canvas Hoist
