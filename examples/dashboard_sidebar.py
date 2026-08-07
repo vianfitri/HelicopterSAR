@@ -104,10 +104,14 @@ class CanvasHelicopter(wx.Panel):
     def on_size(self, event):
         # Gambar selalu berada di tengah secara vertikal
         self.clientSizeHeight = self.GetClientSize().height
+        self.clientSizeWidth = self.GetClientSize().width
         self.BitmapHeight = self.bitmap.GetHeight()
-        self.pos_y = (
-            self.clientSizeHeight - self.BitmapHeight
-        ) // 2
+        #self.pos_y = (
+        #    self.clientSizeHeight - self.BitmapHeight
+        #) // 2
+
+        self.pos_x = self.clientSizeWidth - 10 - self.bitmap.GetWidth()
+        self.pos_y = 10
 
         print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
         
