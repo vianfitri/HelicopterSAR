@@ -165,7 +165,7 @@ class CanvasHoist(wx.Panel):
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         # Load gambar
-        self.imageScale = 0.2
+        self.imageScale = 0.15
         image = wx.Image("examples/images/bell412pps.png")
         imageWidth = int(round(image.GetWidth() * self.imageScale))
         imageHeight = int(round(image.GetHeight() * self.imageScale))
@@ -192,10 +192,10 @@ class CanvasHoist(wx.Panel):
         #    self.clientSizeHeight - self.BitmapHeight
         #) // 2
 
-        self.pos_x = self.clientSizeWidth - self.bitmap.GetWidth() / 2
+        self.pos_x = (self.clientSizeWidth - self.bitmap.GetWidth()) / 2
         self.pos_y = 10
 
-        #print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+        print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
 
         self.Refresh()
         event.Skip()
@@ -457,6 +457,10 @@ class Dashboard(wx.Frame):
             line_color="#E5E7EB",
             corner_radius=14
         )
+
+        self.hoistCanvas = CanvasHoist(card2)
+
+        card2.AddContent(self.hoistCanvas, 1, flag=wx.EXPAND)
 
         contentSizer.Add(card1, proportion=7, flag=wx.EXPAND)
         contentSizer.Add(card2, proportion=3, flag=wx.EXPAND)
