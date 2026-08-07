@@ -85,6 +85,13 @@ class CanvasHelicopter(wx.Panel):
         # Load gambar
         self.imageScale = 0.2
         image = wx.Image("examples/images/bell412pps.png")
+        imageWidth = int(round(image.GetWidth() * self.imageScale))
+        imageHeight = int(round(image.GetHeight() * self.imageScale))
+        image = image.Scale(
+            imageWidth,
+            imageHeight,
+            wx.IMAGE_QUALITY_HIGH
+        )
         self.bitmap = wx.Bitmap(image)
 
         # Posisi gambar
@@ -96,9 +103,14 @@ class CanvasHelicopter(wx.Panel):
 
     def on_size(self, event):
         # Gambar selalu berada di tengah secara vertikal
+        self.clientSizeHeight = self.GetClientSize().height
+        self.BitmapHeight = self.bitmap.GetHeight()
         self.pos_y = (
-            self.GetClientSize().height - self.bitmap.GetHeight()
+            self.clientSizeHeight - self.BitmapHeight
         ) // 2
+
+        print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+        
 
         self.Refresh()
         event.Skip()
@@ -128,8 +140,8 @@ class CanvasHelicopter(wx.Panel):
             self.bitmap,
             self.pos_x,
             self.pos_y,
-            self.bitmap.GetWidth() * self.imageScale,
-            self.bitmap.GetHeight() * self.imageScale
+            self.bitmap.GetWidth(),
+            self.bitmap.GetHeight()
         )
 
 # ==========================
@@ -351,7 +363,7 @@ class Dashboard(wx.Frame):
 
         self.helicopterCanvas = CanvasHelicopter(card1)
 
-        card1.AddContent(self.helicopterCanvas)
+        card1.AddContent(self.helicopterCanvas, 1, flag=wx.EXPAND)
 
         card2 = ModernCard(
             content, 
