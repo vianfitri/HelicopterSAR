@@ -146,8 +146,8 @@ class CanvasHelicopter(wx.Panel):
         width, height = self.GetClientSize()
 
         # Background
-        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-        #gc.SetBrush(wx.Brush(self.Parent.GetBackgroundColour()))
+        #gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
         gc.DrawRectangle(0, 0, width, height)
 
         # Garis lintasan
@@ -224,7 +224,7 @@ class CanvasHoist(wx.Panel):
         self.pos_x = (self.clientSizeWidth - self.bitmap.GetWidth()) / 2
         self.pos_y = 10
 
-        print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+        #print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
 
         self.Refresh()
         event.Skip()
@@ -237,8 +237,8 @@ class CanvasHoist(wx.Panel):
         width, height = self.GetClientSize()
 
         # Background
-        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-        #gc.SetBrush(wx.Brush(self.Parent.GetBackgroundColour()))
+        #gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
         gc.DrawRectangle(0, 0, width, height)
 
         # Gambar helicopter
@@ -249,6 +249,10 @@ class CanvasHoist(wx.Panel):
             self.bitmap.GetWidth(),
             self.bitmap.GetHeight()
         )
+
+        # Gambar Wire
+        gc.SetPen(wx.Pen(wx.Colour(0, 0, 0)))
+        gc.DrawLines()
 
         # draw border bitmap
         gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
