@@ -99,6 +99,9 @@ class CanvasHelicopter(wx.Panel):
         self.pos_y = 100
 
         # Load gambar Base
+
+        # Informasi gambar base
+        # 1322px setara dengan 12 meter
         self.base_imageScale = 0.25
         base_image = wx.Image("examples/images/4.png")
         base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
@@ -251,8 +254,8 @@ class CanvasHoist(wx.Panel):
         )
 
         # Gambar Wire
-        gc.SetPen(wx.Pen(wx.Colour(0, 0, 0)))
-        gc.DrawLines()
+        #gc.SetPen(wx.Pen(wx.Colour(0, 0, 0)))
+        #gc.DrawLines()
 
         # draw border bitmap
         gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
