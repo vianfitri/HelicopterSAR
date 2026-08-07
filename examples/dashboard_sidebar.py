@@ -113,7 +113,7 @@ class CanvasHelicopter(wx.Panel):
         self.pos_x = self.clientSizeWidth - 10 - self.bitmap.GetWidth()
         self.pos_y = 10
 
-        print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+        #print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
         
 
         self.Refresh()
@@ -128,6 +128,7 @@ class CanvasHelicopter(wx.Panel):
 
         # Background
         gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        #gc.SetBrush(wx.Brush(self.Parent.GetBackgroundColour()))
         gc.DrawRectangle(0, 0, width, height)
 
         # Garis lintasan
@@ -147,6 +148,84 @@ class CanvasHelicopter(wx.Panel):
             self.bitmap.GetWidth(),
             self.bitmap.GetHeight()
         )
+
+        # draw border bitmap
+        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+
+        gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
+
+# ==========================
+# Canvas Hoist
+# ==========================
+class CanvasHoist(wx.Panel):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+        # Load gambar
+        self.imageScale = 0.2
+        image = wx.Image("examples/images/bell412pps.png")
+        imageWidth = int(round(image.GetWidth() * self.imageScale))
+        imageHeight = int(round(image.GetHeight() * self.imageScale))
+        image = image.Scale(
+            imageWidth,
+            imageHeight,
+            wx.IMAGE_QUALITY_HIGH
+        )
+        self.bitmap = wx.Bitmap(image)
+
+        # Posisi gambar
+        self.pos_x = 100
+        self.pos_y = 100
+
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+
+    def on_size(self, event):
+        # Gambar selalu berada di tengah secara vertikal
+        self.clientSizeHeight = self.GetClientSize().height
+        self.clientSizeWidth = self.GetClientSize().width
+        self.BitmapHeight = self.bitmap.GetHeight()
+        #self.pos_y = (
+        #    self.clientSizeHeight - self.BitmapHeight
+        #) // 2
+
+        self.pos_x = self.clientSizeWidth - self.bitmap.GetWidth() / 2
+        self.pos_y = 10
+
+        #print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+
+        self.Refresh()
+        event.Skip()
+
+    def on_paint(self, event):
+
+        dc = wx.AutoBufferedPaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+
+        width, height = self.GetClientSize()
+
+        # Background
+        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        #gc.SetBrush(wx.Brush(self.Parent.GetBackgroundColour()))
+        gc.DrawRectangle(0, 0, width, height)
+
+        # Gambar helicopter
+        gc.DrawBitmap(
+            self.bitmap,
+            self.pos_x,
+            self.pos_y,
+            self.bitmap.GetWidth(),
+            self.bitmap.GetHeight()
+        )
+
+        # draw border bitmap
+        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+
+        gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
 
 # ==========================
 # Modern Card
