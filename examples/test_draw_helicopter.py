@@ -71,7 +71,8 @@ class MainFrame(wx.Frame):
             panel,
             minValue=0,
             maxValue=700,
-            value=100
+            value=100,
+            style=wx.SL_HORIZONTAL | wx.SL_INVERSE
         )
 
         self.slider.Bind(wx.EVT_SLIDER, self.on_slider)
