@@ -73,6 +73,68 @@ class SidebarButton(wx.Control):
             (h - th) / 2
         )
 
+# ==========================
+# Canvas Helicopter
+# ==========================
+class CanvasHelicopter(wx.Panel):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+        # Load gambar
+        self.imageScale = 0.2
+        image = wx.Image("examples/images/bell412pps.png")
+        self.bitmap = wx.Bitmap(image)
+
+        # Posisi gambar
+        self.pos_x = 100
+        self.pos_y = 100
+
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+
+    def on_size(self, event):
+        # Gambar selalu berada di tengah secara vertikal
+        self.pos_y = (
+            self.GetClientSize().height - self.bitmap.GetHeight()
+        ) // 2
+
+        self.Refresh()
+        event.Skip()
+
+    def on_paint(self, event):
+
+        dc = wx.AutoBufferedPaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+
+        width, height = self.GetClientSize()
+
+        # Background
+        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        gc.DrawRectangle(0, 0, width, height)
+
+        # Garis lintasan
+        gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 2))
+        gc.StrokeLine(
+            20,
+            height // 2,
+            width - 20,
+            height // 2
+        )
+
+        # Gambar helicopter
+        gc.DrawBitmap(
+            self.bitmap,
+            self.pos_x,
+            self.pos_y,
+            self.bitmap.GetWidth() * self.imageScale,
+            self.bitmap.GetHeight() * self.imageScale
+        )
+
+# ==========================
+# Modern Card
+# ==========================
 class ModernCard(wx.Control):
     """
     Komponen Custom Card Reusable untuk wxPython.
@@ -287,6 +349,10 @@ class Dashboard(wx.Frame):
             corner_radius=14
         )
 
+        self.helicopterCanvas = CanvasHelicopter(card1)
+
+        card1.AddContent(self.helicopterCanvas)
+
         card2 = ModernCard(
             content, 
             title="Hoist Length", 
@@ -308,6 +374,10 @@ class Dashboard(wx.Frame):
         root.Add(body, 1, wx.EXPAND)
 
         panel.SetSizer(root)
+
+    def on_slider_helicopter(self, event):
+            self.helicopterCanvas.pos_x = self.slider.GetValue()
+            self.helicopterCanvas.Refresh() 
 
 
 # ==========================
