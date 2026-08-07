@@ -83,6 +83,8 @@ class CanvasHelicopter(wx.Panel):
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         # Load gambar Helicopter
+        # informasi gambar
+        # 510 px setara dengan 5.05 meter
         self.heli_imageScale = 0.2
         heli_image = wx.Image("examples/images/bell412pps.png")
         heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
