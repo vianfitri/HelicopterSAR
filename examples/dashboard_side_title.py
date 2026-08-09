@@ -139,6 +139,7 @@ class DashboardFrame(wx.Frame):
         #Handler saat tombol Exit diklik
         self.Close(True)
     """
+    
 
     def create_sidebar(self):
         sidebar_panel = wx.Panel(self, size=(220, -1))
