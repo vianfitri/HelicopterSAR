@@ -1,5 +1,122 @@
 import wx
 
+import wx
+
+class RoundedTabButtonCtl(wx.Control):
+    def __init__(self, parent, tab_id, label, icon_char="", active=False):
+        super().__init__(parent, style=wx.BORDER_NONE)
+        
+        self.tab_id = tab_id
+        self.label = label
+        self.icon_char = icon_char
+        self.is_active = active
+        self.is_hovered = False
+
+        # 1. Izinkan komponen menerima fokus dari Keyboard (Tombol TAB)
+        self.SetCanFocus(True)
+        self.SetMinSize((180, 45))
+        
+        # Event Bindings
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_click)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_hover_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_hover_leave)
+        
+        # Event untuk Indikator Fokus Keyboard
+        self.Bind(wx.EVT_SET_FOCUS, self.on_focus_change)
+        self.Bind(wx.EVT_KILL_FOCUS, self.on_focus_change)
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+    def set_active(self, active):
+        self.is_active = active
+        self.Refresh()
+
+    def on_hover_enter(self, event):
+        self.is_hovered = True
+        self.Refresh()
+
+    def on_hover_leave(self, event):
+        self.is_hovered = False
+        self.Refresh()
+
+    def on_focus_change(self, event):
+        self.Refresh()
+        event.Skip()
+
+    def on_key_down(self, event):
+        # Eksekusi tombol saat ditekan SPACE atau ENTER melalui Keyboard
+        if event.GetKeyCode() in (wx.WXK_SPACE, wx.WXK_RETURN):
+            self.trigger_click_event()
+        else:
+            event.Skip()
+
+    def on_click(self, event):
+        self.SetFocus()  # Ambil fokus saat diklik mouse
+        self.trigger_click_event()
+
+    def trigger_click_event(self):
+        # Memicu wx.CommandEvent tipe EVT_BUTTON standar
+        evt = wx.CommandEvent(wx.EVT_BUTTON.typeId, self.GetId())
+        evt.SetEventObject(self)
+        self.GetEventHandler().ProcessEvent(evt)
+
+    def on_paint(self, event):
+        dc = wx.AutoBufferedPaintDC(self)
+        dc.Clear()
+        
+        gc = wx.GraphicsContext.Create(dc)
+        if not gc:
+            return
+
+        rect = self.GetClientRect()
+        padding = 4
+        btn_rect = wx.Rect(
+            rect.x + padding, 
+            rect.y + padding, 
+            rect.width - (padding * 2), 
+            rect.height - (padding * 2)
+        )
+
+        # Skema Warna
+        if self.is_active:
+            bg_color = wx.Colour(41, 128, 185)   # Biru Aktif
+            text_color = wx.Colour(255, 255, 255)
+        elif self.is_hovered:
+            bg_color = wx.Colour(235, 240, 245) # Hover
+            text_color = wx.Colour(40, 40, 40)
+        else:
+            bg_color = wx.Colour(245, 245, 245) # Default
+            text_color = wx.Colour(100, 100, 100)
+
+        # Menggambar Background Rounded Rectangle
+        gc.SetBrush(gc.CreateBrush(wx.Brush(bg_color)))
+        gc.SetPen(gc.CreatePen(wx.Pen(bg_color, 1)))
+        
+        radius = 12.0
+        path = gc.CreatePath()
+        path.AddRoundedRectangle(btn_rect.x, btn_rect.y, btn_rect.width, btn_rect.height, radius)
+        gc.FillPath(path)
+
+        # Draw Outline Indikator Fokus Keyboard (Dotted Border jika sedang aktif di-TAB)
+        if self.HasFocus():
+            focus_pen = wx.Pen(wx.Colour(41, 128, 185), 1, wx.PENSTYLE_SHORT_DASH)
+            gc.SetPen(gc.CreatePen(focus_pen))
+            gc.SetBrush(gc.CreateBrush(wx.Brush(wx.Colour(0,0,0,0)))) # Transparan
+            gc.StrokePath(path)
+
+        # Menggambar Teks
+        font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, 
+                       wx.FONTWEIGHT_BOLD if self.is_active else wx.FONTWEIGHT_NORMAL)
+        gc.SetFont(font, text_color)
+
+        display_text = f"{self.icon_char}  {self.label}".strip()
+        w, h = gc.GetTextExtent(display_text)
+        text_x = btn_rect.x + 15
+        text_y = btn_rect.y + (btn_rect.height - h) / 2
+        gc.DrawText(display_text, text_x, text_y)
+
 class RoundedTabButton(wx.Panel):
     def __init__(self, parent, tab_id, label, icon_char="", active=False, callback=None):
         super().__init__(parent)
