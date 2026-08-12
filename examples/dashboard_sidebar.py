@@ -183,11 +183,11 @@ class CanvasHelicopter(wx.Panel):
         )
 
         # draw border bitmap
-        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
-        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        #gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
-        gc.DrawRectangle(self.pos_x, self.pos_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
-        gc.DrawRectangle(self.base_pos_x, self.base_pos_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
+        #gc.DrawRectangle(self.pos_x, self.pos_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
+        #gc.DrawRectangle(self.base_pos_x, self.base_pos_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
 
 # ==========================
 # Canvas Hoist
