@@ -86,6 +86,7 @@ class MainFrame(wx.Frame):
         
         panel.SetSizer(main_sizer)
         self.Centre()
+        
 
     def on_slider_change(self, event):
         val = self.slider.GetValue()
