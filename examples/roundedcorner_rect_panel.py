@@ -1,11 +1,11 @@
 import wx
 
 class LongitudinalPosControl(wx.Control):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(220, 80), 
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=(440, 160), 
                  val=0.0, corner_radius=15, 
-                 bg_color=wx.Colour(30, 41, 59),      # Slate dark
+                 bg_color=wx.Colour(238, 242, 255),      #soft indigo # (30, 41, 59) Slate dark
                  border_color=wx.Colour(56, 189, 248), # Sky blue
-                 text_color=wx.Colour(241, 245, 249),  # Near white
+                 text_color=wx.Colour(30, 41, 59), #Slate dark#(241, 245, 249),  # Near white
                  label_color=wx.Colour(148, 163, 184)): # Muted text
         
         super().__init__(parent, id, pos, size, style=wx.BORDER_NONE | wx.FULL_REPAINT_ON_RESIZE)
@@ -56,16 +56,16 @@ class LongitudinalPosControl(wx.Control):
         
         # 2. Gambar Teks (Label Header & Nilai Position)
         # Font untuk Label
-        label_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        label_font = wx.Font(11, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(gc.CreateFont(label_font, self.label_color))
         
-        label_str = "LONGITUDINAL POS"
+        label_str = "HOIST LENGTH"
         lw, lh = gc.GetTextExtent(label_str)
         # Posisi label di bagian atas tengah
         gc.DrawText(label_str, (w - lw) / 2, 12)
         
         # Font untuk Nilai Utama
-        val_font = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        val_font = wx.Font(36, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(gc.CreateFont(val_font, self.text_color))
         
         val_str = f"{self.value:+.2f} m"  # Format 2 desimal dengan tanda +/-
@@ -88,7 +88,7 @@ class LongitudinalPosControl(wx.Control):
 # ============================================================================
 class MainFrame(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="Custom Control Test", size=(400, 300))
+        super().__init__(None, title="Custom Control Test", size=(800, 600))
         
         # Panel utama diberi warna latar gradien/berbeda untuk membuktikan transparansi sudut
         panel = wx.Panel(self)
@@ -101,7 +101,7 @@ class MainFrame(wx.Frame):
         sizer.Add(info_text, 0, wx.ALL | wx.ALIGN_CENTER, 15)
         
         # Instantiate Custom Control
-        self.long_ctrl = LongitudinalPosControl(panel, val=12.45)
+        self.long_ctrl = LongitudinalPosControl(panel, val=10)
         sizer.Add(self.long_ctrl, 0, wx.ALL | wx.ALIGN_CENTER, 10)
         
         # Slider untuk mencoba mengubah nilai secara live

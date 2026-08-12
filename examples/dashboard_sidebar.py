@@ -260,10 +260,10 @@ class CanvasHoist(wx.Panel):
         #gc.DrawLines()
 
         # draw border bitmap
-        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
-        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        #gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
-        gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
+        #gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
 
 # ==========================
 # Modern Card
