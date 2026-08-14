@@ -86,6 +86,7 @@ class CanvasHelicopter(wx.Panel):
         # informasi gambar
         # 510 px setara dengan 5.05 meter
         # image real 1408 x 768
+        # sisa ekor saat posisi 0 = 632 px = 6.27 meter
         self.heli_imageScale = 0.2
         heli_image = wx.Image("examples/images/bell412pps.png")
         heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
@@ -106,6 +107,13 @@ class CanvasHelicopter(wx.Panel):
         # Informasi gambar base
         # 1322px setara dengan 12 meter
         # image real 1920 x 1080
+        # sisa ekor heli pada posisi 0 = 6.27 meter = 690.745 px
+        # ujung depan heli 334px
+        # ruang kosong kiri base 234px -> kekurangan 334 - 234 = 100px
+        # ruang kosong kanan base 234px -> kekurangan 691 - 234 = 457px
+        # clientWidth setidaknya harus menyediakan lebar ruang 1920 + 20 + 100 + 457 = 2497
+        # scala harus diambil dari nilai ini
+        # posisi sisi kiri image base juga harus diambil dari scala.
         self.base_imageScale = 0.25
         base_image = wx.Image("examples/images/4.png")
         base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
@@ -138,6 +146,8 @@ class CanvasHelicopter(wx.Panel):
 
         self.base_pos_x = (self.clientSizeWidth - self.base_bitmap.GetWidth()) / 2
         self.base_pos_y = 100
+
+        # scala base image harus seuai dengan clientSizeWidth
 
         #print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
         
