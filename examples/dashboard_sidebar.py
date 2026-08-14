@@ -151,6 +151,9 @@ class CanvasHelicopter(wx.Panel):
             # create base bitmap
             self.base_bitmap = wx.Bitmap(self.base_image)
 
+            # set position of base bitmap image
+            self.base_x = int(round(110 * scale))
+
 
 
             
