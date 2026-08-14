@@ -85,6 +85,7 @@ class CanvasHelicopter(wx.Panel):
         # Load gambar Helicopter
         # informasi gambar
         # 510 px setara dengan 5.05 meter
+        # image real 1408 x 768
         self.heli_imageScale = 0.2
         heli_image = wx.Image("examples/images/bell412pps.png")
         heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
@@ -104,6 +105,7 @@ class CanvasHelicopter(wx.Panel):
 
         # Informasi gambar base
         # 1322px setara dengan 12 meter
+        # image real 1920 x 1080
         self.base_imageScale = 0.25
         base_image = wx.Image("examples/images/4.png")
         base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
