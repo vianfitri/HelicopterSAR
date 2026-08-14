@@ -87,16 +87,16 @@ class CanvasHelicopter(wx.Panel):
         # 510 px setara dengan 5.05 meter
         # image real 1408 x 768
         # sisa ekor saat posisi 0 = 632 px = 6.27 meter
-        self.heli_imageScale = 0.2
+        #self.heli_imageScale = 0.2
         self.heli_image = wx.Image("examples/images/bell412pps.png")
-        heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
-        heli_imageHeight = int(round(heli_image.GetHeight() * self.heli_imageScale))
-        heli_image = heli_image.Scale(
-            heli_imageWidth,
-            heli_imageHeight,
-            wx.IMAGE_QUALITY_HIGH
-        )
-        self.heli_bitmap = wx.Bitmap(heli_image)
+        #heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
+        #heli_imageHeight = int(round(heli_image.GetHeight() * self.heli_imageScale))
+        #heli_image = heli_image.Scale(
+        #    heli_imageWidth,
+        #    heli_imageHeight,
+        #    wx.IMAGE_QUALITY_HIGH
+        #)
+        #self.heli_bitmap = wx.Bitmap(heli_image)
 
         # Posisi gambar heli
         self.pos_x = 100
@@ -125,6 +125,10 @@ class CanvasHelicopter(wx.Panel):
         #)
         #self.base_bitmap = wx.Bitmap(base_image)
 
+        # image size reference
+        self.ref_pixel = 1322
+        self.ref_meter = 12
+
         # posisi gambar base
         self.base_pos_x = 100
         self.base_pos_y = 100
@@ -139,8 +143,9 @@ class CanvasHelicopter(wx.Panel):
 
         # image resize
         if canvas_w > 0 and canvas_h > 0:
-            scale = canvas_w / 2500
+            scale = canvas_w / 2500 # minimum lebar gambar dengan referensi base
 
+            # ======================================
             # base image scaling
             self.base_image = self.base_image.Scale(
                 int(round(self.base_image.GetWidth() * scale)),
@@ -152,7 +157,19 @@ class CanvasHelicopter(wx.Panel):
             self.base_bitmap = wx.Bitmap(self.base_image)
 
             # set position of base bitmap image
-            self.base_x = int(round(110 * scale))
+            self.base_x = int(round(110 * scale)) # pos x jika lebar gambar max 2500
+            self.base_y = 100
+
+            # ======================================
+            # helicopter image scaling
+            heli_pixel = 510
+            heli_meter = 5.05
+
+            ref_scale = self.ref_pixel / self.ref_meter
+            #new_heli_width = heli_meter * ref
+
+
+
 
 
 
@@ -212,8 +229,8 @@ class CanvasHelicopter(wx.Panel):
         # Gambar base
         gc.DrawBitmap(
             self.base_bitmap,
-            self.base_pos_x,
-            self.base_pos_y,
+            self.base_x,
+            self.base_y,
             self.base_bitmap.GetWidth(),
             self.base_bitmap.GetHeight()
         )
