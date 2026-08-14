@@ -88,7 +88,7 @@ class CanvasHelicopter(wx.Panel):
         # image real 1408 x 768
         # sisa ekor saat posisi 0 = 632 px = 6.27 meter
         self.heli_imageScale = 0.2
-        heli_image = wx.Image("examples/images/bell412pps.png")
+        self.heli_image = wx.Image("examples/images/bell412pps.png")
         heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
         heli_imageHeight = int(round(heli_image.GetHeight() * self.heli_imageScale))
         heli_image = heli_image.Scale(
@@ -114,16 +114,16 @@ class CanvasHelicopter(wx.Panel):
         # clientWidth setidaknya harus menyediakan lebar ruang 1920 + 20 + 100 + 457 = 2497
         # scala harus diambil dari nilai ini
         # posisi sisi kiri image base juga harus diambil dari scala.
-        self.base_imageScale = 0.25
-        base_image = wx.Image("examples/images/4.png")
-        base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
-        base_img_height = int(round(base_image.GetHeight() * self.base_imageScale))
-        base_image = base_image.Scale(
-            base_img_width,
-            base_img_height,
-            wx.IMAGE_QUALITY_HIGH
-        )
-        self.base_bitmap = wx.Bitmap(base_image)
+        #self.base_imageScale = 0.25
+        self.base_image = wx.Image("examples/images/4.png")
+        #base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
+        #base_img_height = int(round(base_image.GetHeight() * self.base_imageScale))
+        #base_image = base_image.Scale(
+        #    base_img_width,
+        #    base_img_height,
+        #    wx.IMAGE_QUALITY_HIGH
+        #)
+        #self.base_bitmap = wx.Bitmap(base_image)
 
         # posisi gambar base
         self.base_pos_x = 100
@@ -133,9 +133,31 @@ class CanvasHelicopter(wx.Panel):
         self.Bind(wx.EVT_SIZE, self.on_size)
 
     def on_size(self, event):
-        # Gambar selalu berada di tengah secara vertikal
+        # Canvas size 
+        canvas_w, canvas_h = self.GetClientSize()
+        
+
+        # image resize
+        if canvas_w > 0 and canvas_h > 0:
+            scale = canvas_w / 2500
+
+            # base image scaling
+            self.base_image = self.base_image.Scale(
+                int(round(self.base_image.GetWidth() * scale)),
+                int(round(self.base_image.GetHeight() * scale)),
+                wx.IMAGE_QUALITY_HIGH
+            )
+
+            # create base bitmap
+            self.base_bitmap = wx.Bitmap(self.base_image)
+
+
+
+            
+            
         self.clientSizeHeight = self.GetClientSize().height
         self.clientSizeWidth = self.GetClientSize().width
+
         self.heli_BitmapHeight = self.heli_bitmap.GetHeight()
         #self.pos_y = (
         #    self.clientSizeHeight - self.heli_BitmapHeight
@@ -148,9 +170,8 @@ class CanvasHelicopter(wx.Panel):
         self.base_pos_y = 100
 
         # scala base image harus seuai dengan clientSizeWidth
-
-        #print(f"pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
-        
+        # Scaling Base Image
+                
 
         self.Refresh()
         event.Skip()
