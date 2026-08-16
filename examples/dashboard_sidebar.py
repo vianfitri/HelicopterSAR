@@ -87,20 +87,7 @@ class CanvasHelicopter(wx.Panel):
         # 510 px setara dengan 5.05 meter
         # image real 1408 x 768
         # sisa ekor saat posisi 0 = 632 px = 6.27 meter
-        #self.heli_imageScale = 0.2
         self.heli_image = wx.Image("examples/images/bell412pps.png")
-        #heli_imageWidth = int(round(heli_image.GetWidth() * self.heli_imageScale))
-        #heli_imageHeight = int(round(heli_image.GetHeight() * self.heli_imageScale))
-        #heli_image = heli_image.Scale(
-        #    heli_imageWidth,
-        #    heli_imageHeight,
-        #    wx.IMAGE_QUALITY_HIGH
-        #)
-        #self.heli_bitmap = wx.Bitmap(heli_image)
-
-        # Posisi gambar heli
-        self.pos_x = 100
-        self.pos_y = 100
 
         # Load gambar Base
 
@@ -114,24 +101,11 @@ class CanvasHelicopter(wx.Panel):
         # clientWidth setidaknya harus menyediakan lebar ruang 1920 + 20 + 100 + 457 = 2497
         # scala harus diambil dari nilai ini
         # posisi sisi kiri image base juga harus diambil dari scala.
-        #self.base_imageScale = 0.25
         self.base_image = wx.Image("examples/images/4.png")
-        #base_img_width = int(round(base_image.GetWidth() * self.base_imageScale))
-        #base_img_height = int(round(base_image.GetHeight() * self.base_imageScale))
-        #base_image = base_image.Scale(
-        #    base_img_width,
-        #    base_img_height,
-        #    wx.IMAGE_QUALITY_HIGH
-        #)
-        #self.base_bitmap = wx.Bitmap(base_image)
 
         # image size reference
         self.ref_pixel = 1322
         self.ref_meter = 12
-
-        # posisi gambar base
-        self.base_pos_x = 100
-        self.base_pos_y = 100
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -139,26 +113,33 @@ class CanvasHelicopter(wx.Panel):
     def on_size(self, event):
         # Canvas size 
         canvas_w, canvas_h = self.GetClientSize()
-        
+
+        image_base = self.base_image
+        image_heli = self.heli_image
+
+        print(f"canvas w: {canvas_w}, canvas h: {canvas_h}")
 
         # image resize
         if canvas_w > 0 and canvas_h > 0:
             scale = canvas_w / 2500 # minimum lebar gambar dengan referensi base
 
+            print(f"scale: {scale}")
+            print(f"base w: {image_base.GetWidth()}, base h: {image_base.GetHeight()}")
+
             # ======================================
             # base image scaling
-            self.base_image = self.base_image.Scale(
-                int(round(self.base_image.GetWidth() * scale)),
-                int(round(self.base_image.GetHeight() * scale)),
+            image_base = image_base.Scale(
+                int(round(image_base.GetWidth() * scale)),
+                int(round(image_base.GetHeight() * scale)),
                 wx.IMAGE_QUALITY_HIGH
             )
 
             # create base bitmap
-            self.base_bitmap = wx.Bitmap(self.base_image)
+            self.base_bitmap = wx.Bitmap(image_base)
 
             # set position of base bitmap image
             self.base_x = int(round(110 * scale)) # pos x jika lebar gambar max 2500
-            self.base_y = 100
+            self.base_y = int(round(309 * scale))
 
             # ======================================
             # helicopter image scaling
@@ -166,33 +147,24 @@ class CanvasHelicopter(wx.Panel):
             heli_meter = 5.05
 
             ref_scale = self.ref_pixel / self.ref_meter
-            #new_heli_width = heli_meter * ref
+            heli_image_meter_width = 1408 * heli_meter / heli_pixel
+            heli_image_meter_height = 768 * heli_meter / heli_pixel
+            new_heli_width = heli_image_meter_width * ref_scale
+            new_heli_height = heli_image_meter_height * ref_scale
 
+            image_heli = image_heli.Scale(
+                int(round(new_heli_width * scale)),
+                int(round(new_heli_height * scale)),
+                wx.IMAGE_QUALITY_HIGH
+            )
 
+            # create heli bitmap
+            self.heli_bitmap = wx.Bitmap(image_heli)
 
-
-
-
+            # set position of heli bitmap image
+            self.heli_x = int(round(910 * scale))
+            self.heli_y = 0
             
-            
-        self.clientSizeHeight = self.GetClientSize().height
-        self.clientSizeWidth = self.GetClientSize().width
-
-        self.heli_BitmapHeight = self.heli_bitmap.GetHeight()
-        #self.pos_y = (
-        #    self.clientSizeHeight - self.heli_BitmapHeight
-        #) // 2
-
-        self.pos_x = self.clientSizeWidth - 10 - self.heli_bitmap.GetWidth()
-        self.pos_y = 10
-
-        self.base_pos_x = (self.clientSizeWidth - self.base_bitmap.GetWidth()) / 2
-        self.base_pos_y = 100
-
-        # scala base image harus seuai dengan clientSizeWidth
-        # Scaling Base Image
-                
-
         self.Refresh()
         event.Skip()
 
@@ -204,8 +176,8 @@ class CanvasHelicopter(wx.Panel):
         width, height = self.GetClientSize()
 
         # Background
-        #gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
+        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        #gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
         gc.DrawRectangle(0, 0, width, height)
 
         # Garis lintasan
@@ -220,8 +192,8 @@ class CanvasHelicopter(wx.Panel):
         # Gambar helicopter
         gc.DrawBitmap(
             self.heli_bitmap,
-            self.pos_x,
-            self.pos_y,
+            self.heli_x,
+            self.heli_y,
             self.heli_bitmap.GetWidth(),
             self.heli_bitmap.GetHeight()
         )
@@ -236,11 +208,11 @@ class CanvasHelicopter(wx.Panel):
         )
 
         # draw border bitmap
-        #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
-        #gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
-        #gc.DrawRectangle(self.pos_x, self.pos_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
-        #gc.DrawRectangle(self.base_pos_x, self.base_pos_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
+        gc.DrawRectangle(self.heli_x, self.heli_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
+        gc.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
 
 # ==========================
 # Canvas Hoist
