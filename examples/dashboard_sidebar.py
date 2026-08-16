@@ -82,7 +82,6 @@ class CanvasHelicopter(wx.Panel):
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
-        
         # informasi gambar
         # ========== Helicopter
         # 510 px setara dengan 5.05 meter
@@ -99,7 +98,6 @@ class CanvasHelicopter(wx.Panel):
         # scala harus diambil dari nilai ini
         # posisi sisi kiri image base juga harus diambil dari scala.
         # ========== Troley
-        # informasi track
         # panjang troley 410px tinggi troley 74px
         # posisi troley X 1102px, posisi troley y 319px
         # panjang available track = 1120px - 410px = 710px
@@ -109,21 +107,21 @@ class CanvasHelicopter(wx.Panel):
         # panjang pagar kanan 114px, tinggi 122px
         # posisi X pagar sebelah 1182px, posisi y pagar sebelah 272px
 
-
+        # Load image helicopter
         self.heli_image = wx.Image("examples/images/bell412pps.png")
 
-        # Load gambar Base
+        # Load base track image
+        self.base_image = wx.Image("examples/images/base_track.png")
 
+        # Load base trolley image
+        self.base_trolley_image = wx.Image("examples/images/base_trolley.png")
 
-        
-        self.base_image = wx.Image("examples/images/4.png")
+        # Load base fence image
+        self.base_fence_image = wx.Image("examples/images/base_fence.png")
 
         # image size reference
         self.ref_pixel = 1322
         self.ref_meter = 12
-
-        
-
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -133,6 +131,8 @@ class CanvasHelicopter(wx.Panel):
         canvas_w, canvas_h = self.GetClientSize()
 
         image_base = self.base_image
+        image_trolley = self.base_trolley_image
+        image_fence = self.base_fence_image
         image_heli = self.heli_image
 
         print(f"canvas w: {canvas_w}, canvas h: {canvas_h}")
@@ -158,6 +158,36 @@ class CanvasHelicopter(wx.Panel):
             # set position of base bitmap image
             self.base_x = int(round(110 * scale)) # pos x jika lebar gambar max 2500
             self.base_y = int(round(309 * scale))
+
+            # ======================================
+            # trolley image scaling
+            image_trolley = image_trolley.Scale(
+                int(round(image_trolley.GetWidth() * scale)),
+                int(round(image_trolley.GetHeight() * scale)),
+                wx.IMAGE_QUALITY_HIGH
+            )
+
+            # create trolley bitmap
+            self.trolley_bitmap = wx.Bitmap(image_trolley)
+
+            # set position of trolley bitmap image
+            self.trolley_x = self.base_x + int(round(1102 * scale))
+            self.trolley_y = self.base_y + int(round(319 * scale))
+
+            # ======================================
+            # fence image scaling
+            image_fence = image_fence.Scale(
+                int(round(image_fence.GetWidth() * scale)),
+                int(round(image_fence.GetHeight() * scale)),
+                wx.IMAGE_QUALITY_HIGH
+            )
+
+            # create fence bitmap
+            self.fence_bitmap = wx.Bitmap(image_fence)
+
+            # set position of fence bitmap image
+            self.fence_x = self.base_x + int(round(1182 * scale))
+            self.fence_y = self.base_y + int(round(272 * scale))
 
             # ======================================
             # helicopter image scaling
@@ -198,16 +228,16 @@ class CanvasHelicopter(wx.Panel):
         #gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
         gc.DrawRectangle(0, 0, width, height)
 
-        # Garis lintasan
-        #gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 2))
-        #gc.StrokeLine(
-        #    20,
-        #    height // 2,
-        #    width - 20,
-        #    height // 2
-        #)
+        # Draw fence
+        gc.DrawBitmap(
+            self.fence_bitmap,
+            self.fence_x,
+            self.fence_y,
+            self.fence_bitmap.GetWidth(),
+            self.fence_bitmap.GetHeight()
+        )
 
-        # Gambar helicopter
+        # Draw helicopter
         gc.DrawBitmap(
             self.heli_bitmap,
             self.heli_x,
@@ -216,7 +246,16 @@ class CanvasHelicopter(wx.Panel):
             self.heli_bitmap.GetHeight()
         )
 
-        # Gambar base
+        # Draw Trolley
+        gc.DrawBitmap(
+            self.trolley_bitmap,
+            self.trolley_x,
+            self.trolley_y,
+            self.trolley_bitmap.GetWidth(),
+            self.trolley_bitmap.GetHeight()
+        )
+
+        # Draw base
         gc.DrawBitmap(
             self.base_bitmap,
             self.base_x,
