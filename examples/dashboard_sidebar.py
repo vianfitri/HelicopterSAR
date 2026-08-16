@@ -107,6 +107,12 @@ class CanvasHelicopter(wx.Panel):
         self.ref_pixel = 1322
         self.ref_meter = 12
 
+        # informasi track
+        # panjang available track = 1120 pixel
+        # lebar stoper 46px
+        # panjang troley
+
+
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
 
