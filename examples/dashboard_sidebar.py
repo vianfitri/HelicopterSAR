@@ -108,9 +108,14 @@ class CanvasHelicopter(wx.Panel):
         self.ref_meter = 12
 
         # informasi track
-        # panjang available track = 1120 pixel
+        # panjang troley 410px tinggi troley 74px
+        # posisi troley X 1102px, posisi troley y 319px
+        # panjang available track = 1120px - 410px = 710px
         # lebar stoper 46px
-        # panjang troley
+        # jarak stop troley dari ujung gambar 392px
+        # jarak posisi awal troley dari ujung gambar 1102px
+        # panjang pagar kanan 114px, tinggi 122px
+        # posisi X pagar sebelah 1182px, posisi y pagar sebelah 272px
 
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
