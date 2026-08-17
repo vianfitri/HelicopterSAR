@@ -82,31 +82,6 @@ class CanvasHelicopter(wx.Panel):
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
-        # informasi gambar
-        # ========== Helicopter
-        # 510 px setara dengan 5.05 meter
-        # image real 1408 x 768
-        # sisa ekor saat posisi 0 = 632 px = 6.27 meter
-        # ========== Base
-        # 1322px setara dengan 12 meter
-        # image real 1920 x 1080
-        # sisa ekor heli pada posisi 0 = 6.27 meter = 690.745 px
-        # ujung depan heli 334px
-        # ruang kosong kiri base 234px -> kekurangan 334 - 234 = 100px
-        # ruang kosong kanan base 234px -> kekurangan 691 - 234 = 457px
-        # clientWidth setidaknya harus menyediakan lebar ruang 1920 + 20 + 100 + 457 = 2497
-        # scala harus diambil dari nilai ini
-        # posisi sisi kiri image base juga harus diambil dari scala.
-        # ========== Troley
-        # panjang troley 410px tinggi troley 74px
-        # posisi troley X 1102px, posisi troley y 319px
-        # panjang available track = 1120px - 410px = 710px
-        # lebar stoper 46px
-        # jarak stop troley dari ujung gambar 392px
-        # jarak posisi awal troley dari ujung gambar 1102px
-        # panjang pagar kanan 114px, tinggi 122px
-        # posisi X pagar sebelah 1182px, posisi y pagar sebelah 272px
-
         # Load image helicopter
         self.heli_image = wx.Image("examples/images/bell412pps.png")
 
@@ -118,6 +93,12 @@ class CanvasHelicopter(wx.Panel):
 
         # Load base fence image
         self.base_fence_image = wx.Image("examples/images/base_fence.png")
+
+        # static image buffer
+        #self.fence_buffer = None
+        #self.base_buffer = None
+
+        # dynamic image
 
         # image size reference
         self.ref_pixel = 1322
