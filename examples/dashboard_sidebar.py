@@ -546,29 +546,91 @@ class CanvasHoist(wx.Panel):
         )
         self.bitmap = wx.Bitmap(image)
 
-        # Posisi gambar
+        # Posisi gambar helicopter
         self.pos_x = 100
         self.pos_y = 100
 
+        # Wire rope start point
+        self.rope_start_x = 0 
+        self.rope_start_y = 0 
+
+        # rope length
+        self.min_rope = 10
+        self.max_rope = 250
+        self.rope_length = 100
+
+        # vertical Custom Slider Parameter
+        self.slider_x = 30        # trackbar x position
+        self.slider_y_start = 50  # top point trackbar
+        self.slider_height = 300  # length area trackbar
+        self.thumb_radius = 8     # knob/handler slider size
+
+        # mouse interaction status
+        self.is_dragging = False
+
+        # icon hook
+
+
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
+
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+
+    def set_rope_length(self, length):
+        self.rope_length = length
+        self.Refresh() # repaint
 
     def on_size(self, event):
         # Gambar selalu berada di tengah secara vertikal
         self.clientSizeHeight = self.GetClientSize().height
         self.clientSizeWidth = self.GetClientSize().width
+
         self.BitmapHeight = self.bitmap.GetHeight()
-        #self.pos_y = (
-        #    self.clientSizeHeight - self.BitmapHeight
-        #) // 2
 
         self.pos_x = (self.clientSizeWidth - self.bitmap.GetWidth()) / 2
         self.pos_y = 10
 
-        #print(f"pos x: {self.pos_x}, pos y: {self.pos_y}, clientSizeHeight: {self.clientSizeHeight}, bitmapheight: {self.BitmapHeight}")
+        self.rope_start_x = self.pos_x + int(round(516 * self.imageScale))
+        self.rope_start_y = self.pos_y + int(round(350 * self.imageScale))
 
         self.Refresh()
         event.Skip()
+
+    # Slider Position Calculation
+    def rope_to_thumb_y(self):
+        ratio = (self.rope_length - self.min_rope) / (self.max_rope - self.min_rope)
+        return self.slider_y_start + (ratio * self.slider_height)
+
+    def thumb_y_to_rope(self, y_pos):
+        # Clamping agar nilai Y tidak keluar dari batas trackbar
+        clamped_y = max(self.slider_y_start, min(y_pos, self.slider_y_start + self.slider_height))
+        ratio = (clamped_y - self.slider_y_start) / self.slider_height
+        return self.min_rope + (ratio * (self.max_rope - self.min_rope))
+
+    # Event Handler mouse
+    def on_mouse_down(self, event):
+        mouse_x, mouse_y = event.GetPosition()
+        thumb_y = self.rope_to_thumb_y()
+
+        # Check if mouse click enter Knob/Thumb Slider
+        if abs(mouse_x - self.slider_x) <= 15 and abs(mouse_y - thumb_y) <= 15:
+            self.is_dragging = True
+            self.CaptureMouse()
+
+    def on_mouse_move(self, event):
+        if self.is_dragging:
+            mouse_y = event.GetPosition().y
+            # Update panjang tali secara langsung dari pergerakan mouse
+            self.rope_length = self.thumb_y_to_rope(mouse_y)
+            self.Refresh()  # Redraw canvas secara efisien
+
+    def on_mouse_up(self, event):
+        if self.is_dragging:
+            self.is_dragging = False
+            if self.HasCapture():
+                self.ReleaseMouse()
 
     def on_paint(self, event):
 
@@ -591,15 +653,46 @@ class CanvasHoist(wx.Panel):
             self.bitmap.GetHeight()
         )
 
-        # Gambar Wire
-        #gc.SetPen(wx.Pen(wx.Colour(0, 0, 0)))
-        #gc.DrawLines()
+        # calculate line endpoint
+        rope_end_x = self.rope_start_x
+        rope_end_y = self.rope_start_y + self.rope_length
+
+        # Draw wire rope
+        gc.SetPen(wx.Pen(wx.Colour(0, 0, 0), 1))
+        gc.StrokeLine(self.rope_start_x, self.rope_start_y, rope_end_x, rope_end_y)
 
         # draw border bitmap
         #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
         #gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
         #gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
+
+        # Draw Custom TRACKBAR
+        gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 4))
+        gc.StrokeLine(
+            self.slider_x, 
+            self.slider_y_start, 
+            self.slider_x, 
+            self.slider_y_start + self.slider_height
+        )
+
+        # 4b. Hitung Posisi Knob/Handle berdasarkan self.rope_length
+        thumb_y = self.rope_to_thumb_y()
+
+        # 4c. Gambar Knob/Handle Slider (Lingkaran)
+        gc.SetPen(wx.Pen(wx.Colour(50, 50, 50), 2))
+        gc.SetBrush(wx.Brush(wx.Colour(0, 120, 215)))  # Warna knob biru
+        gc.DrawEllipse(
+            self.slider_x - self.thumb_radius, 
+            thumb_y - self.thumb_radius, 
+            self.thumb_radius * 2, 
+            self.thumb_radius * 2
+        )
+
+        # 4d. Teks Indikator Panjang Tali
+        font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        gc.SetFont(font, wx.Colour(0, 0, 0))
+        gc.DrawText(f"{int(self.rope_length)} px", self.slider_x - 15, self.slider_y_start + self.slider_height + 10)
 
 # ==========================
 # Modern Card
@@ -851,7 +944,6 @@ class Dashboard(wx.Frame):
     def on_slider_helicopter(self, event):
             self.helicopterCanvas.pos_x = self.slider.GetValue()
             self.helicopterCanvas.Refresh() 
-
 
 # ==========================
 # Main

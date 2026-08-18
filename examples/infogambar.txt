@@ -22,3 +22,7 @@
 # jarak posisi awal troley dari ujung gambar 1102px
 # panjang pagar kanan 114px, tinggi 122px
 # posisi X pagar sebelah 1182px, posisi y pagar sebelah 272px
+
+# Hoist zero coordinat 
+# x = 516 from image 0
+# y = 350 from image 0
