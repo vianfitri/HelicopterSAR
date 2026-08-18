@@ -84,28 +84,141 @@ class CanvasHelicopter(wx.Panel):
 
         # Load image helicopter
         self.heli_image = wx.Image("examples/images/bell412pps.png")
+        self.img_heli_orig = wx.Image("examples/images/bell412pps.png")
 
         # Load base track image
         self.base_image = wx.Image("examples/images/base_track.png")
+        self.img_base_orig = wx.Image("examples/images/base_track.png")
 
         # Load base trolley image
         self.base_trolley_image = wx.Image("examples/images/base_trolley.png")
+        self.img_trolley_orig = wx.Image("examples/images/base_trolley.png")
 
         # Load base fence image
         self.base_fence_image = wx.Image("examples/images/base_fence.png")
+        self.img_fence_orig = wx.Image("examples/images/base_fence.png")
 
-        # static image buffer
-        #self.fence_buffer = None
-        #self.base_buffer = None
-
-        # dynamic image
-
-        # image size reference
+        # Reference Constants
         self.ref_pixel = 1322
         self.ref_meter = 12
 
+        # Cache Bitmap & Off-screen Background Buffer
+        self.bg_buffer = None
+        self.base_bitmap = None
+        self.fence_bitmap = None
+        self.heli_bitmap = None
+        self.trolley_bitmap = None
+
+        # Default position
+        self.heli_x, self.heli_y = 0, 0
+        self.trolley_x, self.trolley_y = 0, 0
+        self.base_x, self.base_y = 0, 0
+        self.fence_x, self.fence_y = 0, 0
+
         self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_SIZE, self.on_resize)
+
+    def update_background_buffer(self, canvas_w, canvas_h, scale):
+        # render fence and base once at resize
+        if canvas_w <= 0 or canvas_h <= 0:
+            return
+
+        self.bg_buffer = wx.Bitmap(canvas_w, canvas_h)
+        mem_dc = wx.MemoryDC(self.bg_buffer)
+        gc = wx.GraphicsContext.Create(mem_dc)
+
+        if gc:
+            # Render Background Color
+            gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+            gc.DrawRectangle(0, 0, canvas_w, canvas_h)
+
+            # Render Fence (Statis Belakang)
+            gc.DrawBitmap(
+                self.fence_bitmap,
+                self.fence_x, self.fence_y,
+                self.fence_bitmap.GetWidth(), self.fence_bitmap.GetHeight()
+            )
+
+            # Render Base Track (Statis Depan)
+            gc.DrawBitmap(
+                self.base_bitmap,
+                self.base_x, self.base_y,
+                self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight()
+            )
+
+            # Draw Border Base Track jika diperlukan
+            gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+            gc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gc.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
+
+        mem_dc.SelectObject(wx.NullBitmap)
+
+    def on_resize(self, event):
+        canvas_w, canvas_h = self.GetClientSize()
+
+        if canvas_w > 0 and canvas_h > 0:
+            scale = canvas_w / 2500.0
+
+            # Skala gambar secara hemat memori (Scale hanya saat resize)
+            img_base = self.img_base_orig.Scale(
+                max(1, int(round(self.img_base_orig.GetWidth() * scale))),
+                max(1, int(round(self.img_base_orig.GetHeight() * scale))),
+                wx.IMAGE_QUALITY_HIGH
+            )
+            self.base_bitmap = wx.Bitmap(img_base)
+
+            img_fence = self.img_fence_orig.Scale(
+                max(1, int(round(self.img_fence_orig.GetWidth() * scale))),
+                max(1, int(round(self.img_fence_orig.GetHeight() * scale))),
+                wx.IMAGE_QUALITY_HIGH
+            )
+            self.fence_bitmap = wx.Bitmap(img_fence)
+
+            img_trolley = self.img_trolley_orig.Scale(
+                max(1, int(round(self.img_trolley_orig.GetWidth() * scale))),
+                max(1, int(round(self.img_trolley_orig.GetHeight() * scale))),
+                wx.IMAGE_QUALITY_HIGH
+            )
+            self.trolley_bitmap = wx.Bitmap(img_trolley)
+
+            # Perhitungan khusus helikopter
+            heli_pixel, heli_meter = 510, 5.05
+            ref_scale = self.ref_pixel / self.ref_meter
+            heli_w_meter = 1408 * heli_meter / heli_pixel
+            heli_h_meter = 768 * heli_meter / heli_pixel
+            new_heli_w = heli_w_meter * ref_scale
+            new_heli_h = heli_h_meter * ref_scale
+
+            img_heli = self.img_heli_orig.Scale(
+                max(1, int(round(new_heli_w * scale))),
+                max(1, int(round(new_heli_h * scale))),
+                wx.IMAGE_QUALITY_HIGH
+            )
+            self.heli_bitmap = wx.Bitmap(img_heli)
+
+            # Hitung Posisi Koordinat
+            self.base_x = int(round(110 * scale))
+            self.base_y = int(round(309 * scale))
+            self.fence_x = self.base_x + int(round(1182 * scale))
+            self.fence_y = self.base_y + int(round(272 * scale))
+            self.trolley_x = self.base_x + int(round(1102 * scale))
+            self.trolley_y = self.base_y + int(round(319 * scale))
+            self.heli_x = int(round(910 * scale))
+            self.heli_y = 0
+
+            # Update Background Buffer Statis
+            self.update_background_buffer(canvas_w, canvas_h, scale)
+
+        self.Refresh(False)
+        event.Skip()
+
+    def update_positions(self, heli_pos=None, trolley_pos=None):
+        if heli_pos:
+            self.heli_x, self.heli_y = heli_pos
+        if trolley_pos:
+            self.trolley_x, self.trolley_y = trolley_pos
+            
+        self.Refresh(False)
 
     def on_size(self, event):
         # Canvas size 
@@ -202,55 +315,81 @@ class CanvasHelicopter(wx.Panel):
         dc = wx.AutoBufferedPaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
 
-        width, height = self.GetClientSize()
+        if not gc or not self.bg_buffer or not self.bg_buffer.IsOk():
+            return
 
-        # Background
-        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-        #gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
-        gc.DrawRectangle(0, 0, width, height)
+        # draw blit background cache
+        gc.DrawBitmap(self.bg_buffer, 0, 0, self.bg_buffer.GetWidth(), self.bg_buffer.GetHeight())
 
-        # Draw fence
-        gc.DrawBitmap(
-            self.fence_bitmap,
-            self.fence_x,
-            self.fence_y,
-            self.fence_bitmap.GetWidth(),
-            self.fence_bitmap.GetHeight()
-        )
-
-        # Draw helicopter
+        # draw helicopter image
         gc.DrawBitmap(
             self.heli_bitmap,
-            self.heli_x,
-            self.heli_y,
-            self.heli_bitmap.GetWidth(),
-            self.heli_bitmap.GetHeight()
+            self.heli_x, self.heli_y,
+            self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight()
         )
 
-        # Draw Trolley
+        # draw trolley
         gc.DrawBitmap(
             self.trolley_bitmap,
-            self.trolley_x,
-            self.trolley_y,
-            self.trolley_bitmap.GetWidth(),
-            self.trolley_bitmap.GetHeight()
+            self.trolley_x, self.trolley_y,
+            self.trolley_bitmap.GetWidth(), self.trolley_bitmap.GetHeight()
         )
+
+        # Border Helikopter
+        #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        #gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        #gc.DrawRectangle(self.heli_x, self.heli_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
+
+
+        #width, height = self.GetClientSize()
+
+        # Background
+        #gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        #gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
+        #gc.DrawRectangle(0, 0, width, height)
+
+        # Draw fence
+        #gc.DrawBitmap(
+        #    self.fence_bitmap,
+        #    self.fence_x,
+        #    self.fence_y,
+        #    self.fence_bitmap.GetWidth(),
+        #    self.fence_bitmap.GetHeight()
+        #)
+
+        # Draw helicopter
+        #gc.DrawBitmap(
+        #    self.heli_bitmap,
+        #    self.heli_x,
+        #    self.heli_y,
+        #    self.heli_bitmap.GetWidth(),
+        #    self.heli_bitmap.GetHeight()
+        #)
+
+        # Draw Trolley
+        #gc.DrawBitmap(
+        #    self.trolley_bitmap,
+        #    self.trolley_x,
+        #    self.trolley_y,
+        #    self.trolley_bitmap.GetWidth(),
+        #    self.trolley_bitmap.GetHeight()
+        #)
 
         # Draw base
-        gc.DrawBitmap(
-            self.base_bitmap,
-            self.base_x,
-            self.base_y,
-            self.base_bitmap.GetWidth(),
-            self.base_bitmap.GetHeight()
-        )
+        #gc.DrawBitmap(
+        #    self.base_bitmap,
+        #    self.base_x,
+        #    self.base_y,
+        #    self.base_bitmap.GetWidth(),
+        #    self.base_bitmap.GetHeight()
+        #)
 
         # draw border bitmap
-        gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
-        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        #gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+        #gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
-        gc.DrawRectangle(self.heli_x, self.heli_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
-        gc.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
+        #gc.DrawRectangle(self.heli_x, self.heli_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
+        #gc.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
 
 # ==========================
 # Canvas Hoist
