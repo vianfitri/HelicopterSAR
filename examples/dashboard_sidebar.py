@@ -104,10 +104,15 @@ class CanvasHelicopter(wx.Panel):
 
         # Cache Bitmap & Off-screen Background Buffer
         self.bg_buffer = None
+        self.fg_buffer = None
         self.base_bitmap = None
         self.fence_bitmap = None
         self.heli_bitmap = None
         self.trolley_bitmap = None
+
+        # State Trackbar Control (0 = Kanan, 100 = Kiri)
+        self.trackbar_value = 0 # Default di kanan
+        self.is_dragging_trackbar = False
 
         # Default position
         self.heli_x, self.heli_y = 0, 0
@@ -118,40 +123,69 @@ class CanvasHelicopter(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_resize)
 
+        # Mouse Events untuk Interaksi Trackbar
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+
+    def calculate_positions_from_trackbar(self, scale):
+        """Menghitung posisi X Helicopter & Trolley berdasarkan nilai Trackbar (0..100)."""
+        # Rentang pergerakan horizontal (Offset X)
+        # 0 = Kanan (posisi dasar), 100 = Kiri (bergeser sejauh jarak lintasan)
+        max_offset_x = int(round(710 * scale))
+        
+        # Invert logika: 0 di kanan (offset = 0), 100 di kiri (offset = max_offset_x)
+        current_offset = int(round((self.trackbar_value / 100.0) * max_offset_x))
+
+        # Posisi dasar (Kanan)
+        base_trolley_x = self.base_x + int(round(1102 * scale))
+        base_heli_x = int(round(910 * scale))
+
+        # Geser ke kiri berdasarkan trackbar
+        self.trolley_x = base_trolley_x - current_offset
+        self.heli_x = base_heli_x - current_offset
+
     def update_background_buffer(self, canvas_w, canvas_h, scale):
         # render fence and base once at resize
         if canvas_w <= 0 or canvas_h <= 0:
             return
 
         self.bg_buffer = wx.Bitmap(canvas_w, canvas_h)
-        mem_dc = wx.MemoryDC(self.bg_buffer)
-        gc = wx.GraphicsContext.Create(mem_dc)
+        mem_dc_bg = wx.MemoryDC(self.bg_buffer)
+        gc_bg = wx.GraphicsContext.Create(mem_dc_bg)
 
-        if gc:
+        if gc_bg:
             # Render Background Color
-            gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-            gc.DrawRectangle(0, 0, canvas_w, canvas_h)
+            gc_bg.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+            gc_bg.DrawRectangle(0, 0, canvas_w, canvas_h)
 
             # Render Fence (Statis Belakang)
-            gc.DrawBitmap(
+            gc_bg.DrawBitmap(
                 self.fence_bitmap,
                 self.fence_x, self.fence_y,
                 self.fence_bitmap.GetWidth(), self.fence_bitmap.GetHeight()
             )
 
+        #mem_dc_bg.SelectObject(wx.NullBitmap)
+
+        #self.fg_buffer = wx.Bitmap(canvas_w, canvas_h)
+        #mem_dc_fg = wx.MemoryDC(self.fg_buffer)
+        #gc_fg = wx.GraphicsContext.Create(mem_dc_fg)
+
+        #if gc_fg:
             # Render Base Track (Statis Depan)
-            gc.DrawBitmap(
+            gc_bg.DrawBitmap(
                 self.base_bitmap,
                 self.base_x, self.base_y,
                 self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight()
             )
 
             # Draw Border Base Track jika diperlukan
-            gc.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
-            gc.SetBrush(wx.TRANSPARENT_BRUSH)
-            gc.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
+            #gc_fg.SetPen(wx.Pen(wx.Colour(255, 128, 0), 2))
+            #gc_fg.SetBrush(wx.TRANSPARENT_BRUSH)
+            #gc_fg.DrawRectangle(self.base_x, self.base_y, self.base_bitmap.GetWidth(), self.base_bitmap.GetHeight())
 
-        mem_dc.SelectObject(wx.NullBitmap)
+        mem_dc_bg.SelectObject(wx.NullBitmap)
 
     def on_resize(self, event):
         canvas_w, canvas_h = self.GetClientSize()
@@ -206,11 +240,73 @@ class CanvasHelicopter(wx.Panel):
             self.heli_x = int(round(910 * scale))
             self.heli_y = 0
 
+            # Hitung geometri Trackbar sesuai skala
+            self.trackbar_x = self.base_x + int(round(592 * scale))
+            self.trackbar_y = self.base_y + self.base_bitmap.GetHeight() + int(round(15 * scale)) # Di bawah base_track
+            self.trackbar_length = int(round(710 * scale))
+
+            # Hitung posisi X dinamis berdasarkan nilai trackbar
+            self.calculate_positions_from_trackbar(scale)
+
             # Update Background Buffer Statis
             self.update_background_buffer(canvas_w, canvas_h, scale)
 
         self.Refresh(False)
         event.Skip()
+
+    # =======================================================
+    # INTERAKSI MOUSE UNTUK TRACKBAR
+    # =======================================================
+    def get_thumb_rect(self):
+        """Mendapatkan bounding box dari tombol/thumb trackbar untuk deteksi klik."""
+        # 0 = Kanan, 100 = Kiri
+        ratio = (100 - self.trackbar_value) / 100.0
+        thumb_center_x = self.trackbar_x + int(round(ratio * self.trackbar_length))
+        
+        radius = int(round(10 * getattr(self, 'scale', 1.0)))
+        return wx.Rect(thumb_center_x - radius, self.trackbar_y - radius, radius * 2, radius * 2)
+
+    def update_value_from_mouse(self, mouse_x):
+        """Memperbarui nilai trackbar (0-100) berdasarkan koordinat mouse."""
+        rel_x = mouse_x - self.trackbar_x
+        rel_x = max(0, min(self.trackbar_length, rel_x)) # Clamp nilai
+        
+        # 0 di kanan, 100 di kiri
+        ratio = rel_x / float(self.trackbar_length) if self.trackbar_length > 0 else 0
+        self.trackbar_value = int(round((1.0 - ratio) * 100))
+        
+        # Perbarui posisi gambar dinamis
+        self.calculate_positions_from_trackbar(self.scale)
+        self.Refresh(False)
+
+    def on_mouse_down(self, event):
+        pos = event.GetPosition()
+        thumb_rect = self.get_thumb_rect()
+        
+        # Perbesar hit-area sedikit agar mudah di-klik
+        thumb_rect.Inflate(5, 5)
+        
+        if thumb_rect.Contains(pos):
+            self.is_dragging_trackbar = True
+            self.CaptureMouse()
+        elif self.trackbar_x <= pos.x <= (self.trackbar_x + self.trackbar_length) and \
+             abs(pos.y - self.trackbar_y) <= 15:
+            # Klik langsung pada garis trackbar
+            self.is_dragging_trackbar = True
+            if self.HasCapture():
+                self.ReleaseMouse()
+            self.CaptureMouse()
+            self.update_value_from_mouse(pos.x)
+
+    def on_mouse_move(self, event):
+        if self.is_dragging_trackbar and event.Dragging():
+            self.update_value_from_mouse(event.GetPosition().x)
+
+    def on_mouse_up(self, event):
+        if self.is_dragging_trackbar:
+            self.is_dragging_trackbar = False
+            if self.HasCapture():
+                self.ReleaseMouse()
 
     def update_positions(self, heli_pos=None, trolley_pos=None):
         if heli_pos:
@@ -310,6 +406,40 @@ class CanvasHelicopter(wx.Panel):
         self.Refresh()
         event.Skip()
 
+    # =======================================================
+    # RENDERING
+    # =======================================================
+    def draw_trackbar(self, gc):
+        """Menggambar visual trackbar secara kustom menggunakan GraphicsContext."""
+        # 1. Garis Lintasan Trackbar (Track Rail)
+        gc.SetPen(wx.Pen(wx.Colour(120, 140, 160), 4))
+        gc.StrokeLine(self.trackbar_x, self.trackbar_y, self.trackbar_x + self.trackbar_length, self.trackbar_y)
+
+        # 2. Tanda Batas Kiri & Kanan (Ticks)
+        gc.SetPen(wx.Pen(wx.Colour(80, 90, 100), 2))
+        tick_h = int(round(8 * self.scale))
+        gc.StrokeLine(self.trackbar_x, self.trackbar_y - tick_h, self.trackbar_x, self.trackbar_y + tick_h) # 100 (Kiri)
+        gc.StrokeLine(self.trackbar_x + self.trackbar_length, self.trackbar_y - tick_h, 
+                      self.trackbar_x + self.trackbar_length, self.trackbar_y + tick_h) # 0 (Kanan)
+
+        # 3. Tombol Geser (Thumb Handle)
+        # Ratio: 0 = Kanan, 100 = Kiri
+        ratio = (100 - self.trackbar_value) / 100.0
+        thumb_x = self.trackbar_x + int(round(ratio * self.trackbar_length))
+        radius = int(round(10 * self.scale))
+
+        # Warna Tombol (Orange saat di-drag)
+        fill_color = wx.Colour(255, 128, 0) if self.is_dragging_trackbar else wx.Colour(0, 120, 215)
+        gc.SetBrush(wx.Brush(fill_color))
+        gc.SetPen(wx.Pen(wx.Colour(255, 255, 255), 2))
+        gc.DrawEllipse(thumb_x - radius, self.trackbar_y - radius, radius * 2, radius * 2)
+
+        # 4. Teks Nilai Trackbar (Indikator 0..100)
+        font = wx.Font(int(round(9 * self.scale)), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        gc.SetFont(font, wx.Colour(50, 50, 50))
+        gc.DrawText("100", self.trackbar_x - int(round(25 * self.scale)), self.trackbar_y - int(round(8 * self.scale)))
+        gc.DrawText("0", self.trackbar_x + self.trackbar_length + int(round(10 * self.scale)), self.trackbar_y - int(round(8 * self.scale)))
+
     def on_paint(self, event):
 
         dc = wx.AutoBufferedPaintDC(self)
@@ -340,6 +470,10 @@ class CanvasHelicopter(wx.Panel):
         #gc.SetBrush(wx.TRANSPARENT_BRUSH)
         #gc.DrawRectangle(self.heli_x, self.heli_y, self.heli_bitmap.GetWidth(), self.heli_bitmap.GetHeight())
 
+        # draw blit foreground cache
+        #gc.DrawBitmap(self.fg_buffer, 0, 0, self.fg_buffer.GetWidth(), self.fg_buffer.GetHeight())
+
+        self.draw_trackbar(gc)
 
         #width, height = self.GetClientSize()
 
