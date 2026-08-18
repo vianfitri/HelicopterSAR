@@ -191,26 +191,26 @@ class CanvasHelicopter(wx.Panel):
         canvas_w, canvas_h = self.GetClientSize()
 
         if canvas_w > 0 and canvas_h > 0:
-            scale = canvas_w / 2500.0
+            self.scale = canvas_w / 2500.0
 
             # Skala gambar secara hemat memori (Scale hanya saat resize)
             img_base = self.img_base_orig.Scale(
-                max(1, int(round(self.img_base_orig.GetWidth() * scale))),
-                max(1, int(round(self.img_base_orig.GetHeight() * scale))),
+                max(1, int(round(self.img_base_orig.GetWidth() * self.scale))),
+                max(1, int(round(self.img_base_orig.GetHeight() * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
             )
             self.base_bitmap = wx.Bitmap(img_base)
 
             img_fence = self.img_fence_orig.Scale(
-                max(1, int(round(self.img_fence_orig.GetWidth() * scale))),
-                max(1, int(round(self.img_fence_orig.GetHeight() * scale))),
+                max(1, int(round(self.img_fence_orig.GetWidth() * self.scale))),
+                max(1, int(round(self.img_fence_orig.GetHeight() * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
             )
             self.fence_bitmap = wx.Bitmap(img_fence)
 
             img_trolley = self.img_trolley_orig.Scale(
-                max(1, int(round(self.img_trolley_orig.GetWidth() * scale))),
-                max(1, int(round(self.img_trolley_orig.GetHeight() * scale))),
+                max(1, int(round(self.img_trolley_orig.GetWidth() * self.scale))),
+                max(1, int(round(self.img_trolley_orig.GetHeight() * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
             )
             self.trolley_bitmap = wx.Bitmap(img_trolley)
@@ -224,32 +224,32 @@ class CanvasHelicopter(wx.Panel):
             new_heli_h = heli_h_meter * ref_scale
 
             img_heli = self.img_heli_orig.Scale(
-                max(1, int(round(new_heli_w * scale))),
-                max(1, int(round(new_heli_h * scale))),
+                max(1, int(round(new_heli_w * self.scale))),
+                max(1, int(round(new_heli_h * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
             )
             self.heli_bitmap = wx.Bitmap(img_heli)
 
             # Hitung Posisi Koordinat
-            self.base_x = int(round(110 * scale))
-            self.base_y = int(round(309 * scale))
-            self.fence_x = self.base_x + int(round(1182 * scale))
-            self.fence_y = self.base_y + int(round(272 * scale))
-            self.trolley_x = self.base_x + int(round(1102 * scale))
-            self.trolley_y = self.base_y + int(round(319 * scale))
-            self.heli_x = int(round(910 * scale))
+            self.base_x = int(round(110 * self.scale))
+            self.base_y = int(round(309 * self.scale))
+            self.fence_x = self.base_x + int(round(1182 * self.scale))
+            self.fence_y = self.base_y + int(round(272 * self.scale))
+            self.trolley_x = self.base_x + int(round(1102 * self.scale))
+            self.trolley_y = self.base_y + int(round(319 * self.scale))
+            self.heli_x = int(round(910 * self.scale))
             self.heli_y = 0
 
             # Hitung geometri Trackbar sesuai skala
-            self.trackbar_x = self.base_x + int(round(592 * scale))
-            self.trackbar_y = self.base_y + self.base_bitmap.GetHeight() + int(round(15 * scale)) # Di bawah base_track
-            self.trackbar_length = int(round(710 * scale))
+            self.trackbar_x = self.base_x + int(round(592 * self.scale))
+            self.trackbar_y = self.base_y + self.base_bitmap.GetHeight() + int(round(15 * self.scale)) # Di bawah base_track
+            self.trackbar_length = int(round(710 * self.scale))
 
             # Hitung posisi X dinamis berdasarkan nilai trackbar
-            self.calculate_positions_from_trackbar(scale)
+            self.calculate_positions_from_trackbar(self.scale)
 
             # Update Background Buffer Statis
-            self.update_background_buffer(canvas_w, canvas_h, scale)
+            self.update_background_buffer(canvas_w, canvas_h, self.scale)
 
         self.Refresh(False)
         event.Skip()
