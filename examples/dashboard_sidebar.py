@@ -242,7 +242,7 @@ class CanvasHelicopter(wx.Panel):
 
             # Hitung geometri Trackbar sesuai skala
             self.trackbar_x = self.base_x + int(round(592 * self.scale))
-            self.trackbar_y = self.base_y + self.base_bitmap.GetHeight() + int(round(15 * self.scale)) # Di bawah base_track
+            self.trackbar_y = self.base_y + self.base_bitmap.GetHeight() + 15 # Di bawah base_track
             self.trackbar_length = int(round(710 * self.scale))
 
             # Hitung posisi X dinamis berdasarkan nilai trackbar
@@ -417,7 +417,7 @@ class CanvasHelicopter(wx.Panel):
 
         # 2. Tanda Batas Kiri & Kanan (Ticks)
         gc.SetPen(wx.Pen(wx.Colour(80, 90, 100), 2))
-        tick_h = int(round(8 * self.scale))
+        tick_h = 8
         gc.StrokeLine(self.trackbar_x, self.trackbar_y - tick_h, self.trackbar_x, self.trackbar_y + tick_h) # 100 (Kiri)
         gc.StrokeLine(self.trackbar_x + self.trackbar_length, self.trackbar_y - tick_h, 
                       self.trackbar_x + self.trackbar_length, self.trackbar_y + tick_h) # 0 (Kanan)
@@ -426,7 +426,7 @@ class CanvasHelicopter(wx.Panel):
         # Ratio: 0 = Kanan, 100 = Kiri
         ratio = (100 - self.trackbar_value) / 100.0
         thumb_x = self.trackbar_x + int(round(ratio * self.trackbar_length))
-        radius = int(round(10 * self.scale))
+        radius = 10
 
         # Warna Tombol (Orange saat di-drag)
         fill_color = wx.Colour(255, 128, 0) if self.is_dragging_trackbar else wx.Colour(0, 120, 215)
@@ -435,10 +435,10 @@ class CanvasHelicopter(wx.Panel):
         gc.DrawEllipse(thumb_x - radius, self.trackbar_y - radius, radius * 2, radius * 2)
 
         # 4. Teks Nilai Trackbar (Indikator 0..100)
-        font = wx.Font(int(round(9 * self.scale)), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(font, wx.Colour(50, 50, 50))
-        gc.DrawText("100", self.trackbar_x - int(round(25 * self.scale)), self.trackbar_y - int(round(8 * self.scale)))
-        gc.DrawText("0", self.trackbar_x + self.trackbar_length + int(round(10 * self.scale)), self.trackbar_y - int(round(8 * self.scale)))
+        gc.DrawText("100", self.trackbar_x - 25, self.trackbar_y - 8)
+        gc.DrawText("0", self.trackbar_x + self.trackbar_length + 10, self.trackbar_y - 8)
 
     def on_paint(self, event):
 
