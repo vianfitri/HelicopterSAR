@@ -73,6 +73,82 @@ class SidebarButton(wx.Control):
             (h - th) / 2
         )
 
+import wx
+
+
+class SidebarButton_dis(wx.Control):
+
+    def __init__(self, parent, label):
+        super().__init__(parent, size=(180, 50))
+
+        self.label = label
+        self.hover = False
+
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+        # Event Binding
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+
+        # 1. Bind EVT_ENABLE agar repaint saat status enable/disable berubah
+        self.Bind(wx.EVT_ENABLE, self.on_enable)
+
+    def on_enter(self, event):
+        # 2. Hanya ubah status hover jika tombol dalam kondisi aktif (enabled)
+        if self.IsEnabled():
+            self.hover = True
+            self.Refresh()
+
+    def on_leave(self, event):
+        if self.IsEnabled():
+            self.hover = False
+            self.Refresh()
+
+    def on_enable(self, event):
+        # Memicu gambar ulang saat Enable(True/False) dipanggil
+        self.Refresh()
+
+    def on_paint(self, event):
+        dc = wx.AutoBufferedPaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+
+        w, h = self.GetSize()
+
+        dc.SetBackground(wx.Brush(SIDEBAR_COLOR))
+        dc.Clear()
+
+        radius = 12
+
+        # 3. Tentukan warna berdasarkan kondisi: Disabled vs Hover vs Normal
+        if not self.IsEnabled():
+            bg_color = wx.Colour(40, 43, 48)  # Warna tombol mati (gelap/pudar)
+            text_color = wx.Colour(120, 125, 130)  # Warna teks pudar
+        elif self.hover:
+            bg_color = wx.Colour(255, 122, 0)  # Warna saat hover
+            text_color = TEXT_LIGHT
+        else:
+            bg_color = wx.Colour(70, 75, 82)  # Warna normal
+            text_color = TEXT_LIGHT
+
+        # Gambar Background Rounded Rectangle
+        gc.SetBrush(wx.Brush(bg_color))
+        gc.SetPen(wx.TRANSPARENT_PEN)
+        gc.DrawRoundedRectangle(0, 0, w, h, radius)
+
+        # Gambar Teks
+        font = wx.Font(
+            10,
+            wx.FONTFAMILY_DEFAULT,
+            wx.FONTSTYLE_NORMAL,
+            wx.FONTWEIGHT_BOLD,
+        )
+        gc.SetFont(font, text_color)
+
+        tw, th = gc.GetTextExtent(self.label)
+
+        gc.DrawText(self.label, (w - tw) / 2, (h - th) / 2)
+
 # ==========================
 # Canvas Helicopter
 # ==========================
@@ -939,7 +1015,8 @@ class Dashboard(wx.Frame):
         sideSizer.AddSpacer(30)
 
         btn1 = SidebarButton(sidebar, "Monitoring")
-        btn2 = SidebarButton(sidebar, "Settings")
+        btn2 = SidebarButton_dis(sidebar, "Settings")
+        btn2.Enable(False)
 
         sideSizer.Add(btn1, 0,
                       wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 15)
