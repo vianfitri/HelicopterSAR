@@ -624,7 +624,7 @@ class CanvasHoist(wx.Panel):
         self.pos_x = (self.clientSizeWidth - self.bitmap.GetWidth()) / 2
         self.pos_y = 10
 
-        self.rope_start_x = self.pos_x + int(round(516 * self.imageScale))
+        self.rope_start_x = self.pos_x + int(round(916 * self.imageScale))
         self.rope_start_y = self.pos_y + int(round(350 * self.imageScale))
 
         self.Refresh()
