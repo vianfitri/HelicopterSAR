@@ -83,15 +83,15 @@ class CanvasHelicopter(wx.Panel):
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         # Load image helicopter
-        self.heli_image = wx.Image("examples/images/bell412pps.png")
+        self.img_heli_r_orig = wx.Image("examples/images/heli_R.png")
         self.img_heli_orig = wx.Image("examples/images/bell412pps.png")
 
         # Load base track image
-        self.base_image = wx.Image("examples/images/base_track.png")
+        self.img_base_r_orig = wx.Image("examples/images/base_track_R.png")
         self.img_base_orig = wx.Image("examples/images/base_track.png")
 
         # Load base trolley image
-        self.base_trolley_image = wx.Image("examples/images/base_trolley.png")
+        self.img_trolley_r_orig = wx.Image("examples/images/base_trolley_R.png")
         self.img_trolley_orig = wx.Image("examples/images/base_trolley.png")
 
         # Load base fence image
@@ -138,8 +138,8 @@ class CanvasHelicopter(wx.Panel):
         current_offset = int(round((self.trackbar_value / 100.0) * max_offset_x))
 
         # Posisi dasar (Kanan)
-        base_trolley_x = self.base_x + int(round(1102 * scale))
-        base_heli_x = int(round(910 * scale))
+        base_trolley_x = self.base_x + int(round(392 * scale))
+        base_heli_x = int(round(40 * scale))
 
         # Geser ke kiri berdasarkan trackbar
         self.trolley_x = base_trolley_x - current_offset
@@ -160,11 +160,11 @@ class CanvasHelicopter(wx.Panel):
             gc_bg.DrawRectangle(0, 0, canvas_w, canvas_h)
 
             # Render Fence (Statis Belakang)
-            gc_bg.DrawBitmap(
-                self.fence_bitmap,
-                self.fence_x, self.fence_y,
-                self.fence_bitmap.GetWidth(), self.fence_bitmap.GetHeight()
-            )
+            #gc_bg.DrawBitmap(
+            #    self.fence_bitmap,
+            #    self.fence_x, self.fence_y,
+            #    self.fence_bitmap.GetWidth(), self.fence_bitmap.GetHeight()
+            #)
 
         #mem_dc_bg.SelectObject(wx.NullBitmap)
 
@@ -194,36 +194,59 @@ class CanvasHelicopter(wx.Panel):
             self.scale = canvas_w / 2500.0
 
             # Skala gambar secara hemat memori (Scale hanya saat resize)
-            img_base = self.img_base_orig.Scale(
-                max(1, int(round(self.img_base_orig.GetWidth() * self.scale))),
-                max(1, int(round(self.img_base_orig.GetHeight() * self.scale))),
-                wx.IMAGE_QUALITY_HIGH
+            #img_base = self.img_base_orig.Scale(
+            #    max(1, int(round(self.img_base_orig.GetWidth() * self.scale))),
+            #    max(1, int(round(self.img_base_orig.GetHeight() * self.scale))),
+            #    wx.IMAGE_QUALITY_HIGH
+            #)
+            #self.base_bitmap = wx.Bitmap(img_base)
+
+            #img_fence = self.img_fence_orig.Scale(
+            #    max(1, int(round(self.img_fence_orig.GetWidth() * self.scale))),
+            #    max(1, int(round(self.img_fence_orig.GetHeight() * self.scale))),
+            #    wx.IMAGE_QUALITY_HIGH
+            #)
+            #self.fence_bitmap = wx.Bitmap(img_fence)
+
+            img_base = self.img_base_r_orig.Scale(
+                max(1, int(round(self.img_base_r_orig.GetWidth() * self.scale))),
+                max(1, int(round(self.img_base_r_orig.GetHeight() * self.scale))),
+                wx.IMAGE_QUALITY_HIGH  
             )
             self.base_bitmap = wx.Bitmap(img_base)
 
-            img_fence = self.img_fence_orig.Scale(
-                max(1, int(round(self.img_fence_orig.GetWidth() * self.scale))),
-                max(1, int(round(self.img_fence_orig.GetHeight() * self.scale))),
-                wx.IMAGE_QUALITY_HIGH
-            )
-            self.fence_bitmap = wx.Bitmap(img_fence)
+            #img_trolley = self.img_trolley_orig.Scale(
+            #    max(1, int(round(self.img_trolley_orig.GetWidth() * self.scale))),
+            #    max(1, int(round(self.img_trolley_orig.GetHeight() * self.scale))),
+            #    wx.IMAGE_QUALITY_HIGH
+            #)
+            #self.trolley_bitmap = wx.Bitmap(img_trolley)
 
-            img_trolley = self.img_trolley_orig.Scale(
-                max(1, int(round(self.img_trolley_orig.GetWidth() * self.scale))),
-                max(1, int(round(self.img_trolley_orig.GetHeight() * self.scale))),
+            img_trolley = self.img_trolley_r_orig.Scale(
+                max(1, int(round(self.img_trolley_r_orig.GetWidth() * self.scale))),
+                max(1, int(round(self.img_trolley_r_orig.GetHeight() * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
             )
             self.trolley_bitmap = wx.Bitmap(img_trolley)
 
             # Perhitungan khusus helikopter
-            heli_pixel, heli_meter = 510, 5.05
+            #heli_pixel, heli_meter = 510, 5.05
+            heli_pixel, heli_meter = 508, 5.05
             ref_scale = self.ref_pixel / self.ref_meter
-            heli_w_meter = 1408 * heli_meter / heli_pixel
-            heli_h_meter = 768 * heli_meter / heli_pixel
+            #heli_w_meter = 1408 * heli_meter / heli_pixel
+            #heli_h_meter = 768 * heli_meter / heli_pixel
+            heli_w_meter = 1380 * heli_meter / heli_pixel
+            heli_h_meter = 752 * heli_meter / heli_pixel
             new_heli_w = heli_w_meter * ref_scale
             new_heli_h = heli_h_meter * ref_scale
 
-            img_heli = self.img_heli_orig.Scale(
+            #img_heli = self.img_heli_orig.Scale(
+            #    max(1, int(round(new_heli_w * self.scale))),
+            #    max(1, int(round(new_heli_h * self.scale))),
+            #    wx.IMAGE_QUALITY_HIGH
+            #)
+            #self.heli_bitmap = wx.Bitmap(img_heli)
+            img_heli = self.img_heli_r_orig.Scale(
                 max(1, int(round(new_heli_w * self.scale))),
                 max(1, int(round(new_heli_h * self.scale))),
                 wx.IMAGE_QUALITY_HIGH
@@ -231,13 +254,22 @@ class CanvasHelicopter(wx.Panel):
             self.heli_bitmap = wx.Bitmap(img_heli)
 
             # Hitung Posisi Koordinat
-            self.base_x = int(round(110 * self.scale))
+            #self.base_x = int(round(110 * self.scale))
+            #self.base_y = int(round(309 * self.scale))
+            #self.fence_x = self.base_x + int(round(1182 * self.scale))
+            #self.fence_y = self.base_y + int(round(272 * self.scale))
+            #self.trolley_x = self.base_x + int(round(1102 * self.scale))
+            #self.trolley_y = self.base_y + int(round(319 * self.scale))
+            #self.heli_x = int(round(910 * self.scale))
+            #self.heli_y = 0
+
+            self.base_x = int(round(467 * self.scale))
             self.base_y = int(round(309 * self.scale))
-            self.fence_x = self.base_x + int(round(1182 * self.scale))
-            self.fence_y = self.base_y + int(round(272 * self.scale))
-            self.trolley_x = self.base_x + int(round(1102 * self.scale))
+            #self.fence_x = self.base_x + int(round(1182 * self.scale))
+            #self.fence_y = self.base_y + int(round(272 * self.scale))
+            self.trolley_x = self.base_x + int(round(412 * self.scale))
             self.trolley_y = self.base_y + int(round(319 * self.scale))
-            self.heli_x = int(round(910 * self.scale))
+            self.heli_x = int(round(40 * self.scale))
             self.heli_y = 0
 
             # Hitung geometri Trackbar sesuai skala
@@ -260,7 +292,7 @@ class CanvasHelicopter(wx.Panel):
     def get_thumb_rect(self):
         """Mendapatkan bounding box dari tombol/thumb trackbar untuk deteksi klik."""
         # 0 = Kanan, 100 = Kiri
-        ratio = (100 - self.trackbar_value) / 100.0
+        ratio = self.trackbar_value / 100.0
         thumb_center_x = self.trackbar_x + int(round(ratio * self.trackbar_length))
         
         radius = int(round(10 * getattr(self, 'scale', 1.0)))
@@ -273,7 +305,7 @@ class CanvasHelicopter(wx.Panel):
         
         # 0 di kanan, 100 di kiri
         ratio = rel_x / float(self.trackbar_length) if self.trackbar_length > 0 else 0
-        self.trackbar_value = int(round((1.0 - ratio) * 100))
+        self.trackbar_value = int(round(ratio * 100))
         
         # Perbarui posisi gambar dinamis
         self.calculate_positions_from_trackbar(self.scale)
@@ -424,7 +456,7 @@ class CanvasHelicopter(wx.Panel):
 
         # 3. Tombol Geser (Thumb Handle)
         # Ratio: 0 = Kanan, 100 = Kiri
-        ratio = (100 - self.trackbar_value) / 100.0
+        ratio = self.trackbar_value / 100.0
         thumb_x = self.trackbar_x + int(round(ratio * self.trackbar_length))
         radius = 10
 
@@ -437,8 +469,8 @@ class CanvasHelicopter(wx.Panel):
         # 4. Teks Nilai Trackbar (Indikator 0..100)
         font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(font, wx.Colour(50, 50, 50))
-        gc.DrawText("100", self.trackbar_x - 25, self.trackbar_y - 8)
-        gc.DrawText("0", self.trackbar_x + self.trackbar_length + 10, self.trackbar_y - 8)
+        gc.DrawText("0 m", self.trackbar_x - 30, self.trackbar_y - 8)
+        gc.DrawText("4.5 m", self.trackbar_x + self.trackbar_length + 10, self.trackbar_y - 8)
 
     def on_paint(self, event):
 

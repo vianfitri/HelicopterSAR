@@ -26,3 +26,15 @@
 # Hoist zero coordinat 
 # x = 516 from image 0
 # y = 350 from image 0
+
+# ================= RIGHT SIDE IMAGE ===================
+# heli_R
+# size 1380x752
+# 508px as 5.05m
+
+# base_track_R
+# size 1920x1080
+# 1322px as 12m
+
+# trolley_R
+# size 417x76
