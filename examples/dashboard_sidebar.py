@@ -142,8 +142,8 @@ class CanvasHelicopter(wx.Panel):
         base_heli_x = int(round(40 * scale))
 
         # Geser ke kiri berdasarkan trackbar
-        self.trolley_x = base_trolley_x - current_offset
-        self.heli_x = base_heli_x - current_offset
+        self.trolley_x = base_trolley_x + current_offset
+        self.heli_x = base_heli_x + current_offset
 
     def update_background_buffer(self, canvas_w, canvas_h, scale):
         # render fence and base once at resize
