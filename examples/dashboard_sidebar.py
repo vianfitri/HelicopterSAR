@@ -578,6 +578,16 @@ class CanvasHoist(wx.Panel):
         )
         self.bitmap = wx.Bitmap(image)
 
+        # Load Hook Icon
+        hook_img = wx.Image("examples/images/hook.png") 
+        hook_img = hook_img.Scale(
+            32,
+            32,
+            wx.IMAGE_QUALITY_HIGH
+        )
+
+        self.hook_bitmap = wx.Bitmap(hook_img)
+
         # Posisi gambar helicopter
         self.pos_x = 100
         self.pos_y = 100
@@ -698,6 +708,21 @@ class CanvasHoist(wx.Panel):
         #gc.SetBrush(wx.TRANSPARENT_BRUSH)
 
         #gc.DrawRectangle(self.pos_x, self.pos_y, self.bitmap.GetWidth(), self.bitmap.GetHeight())
+
+        # draw hook
+        hook_w = self.hook_bitmap.GetWidth()
+        hook_h = self.hook_bitmap.GetHeight()
+
+        hook_x = rope_end_x - (hook_w // 2)
+        hook_y = rope_end_y
+
+        gc.DrawBitmap(
+            self.hook_bitmap,
+            hook_x,
+            hook_y,
+            hook_w,
+            hook_h
+        )
 
         # Draw Custom TRACKBAR
         gc.SetPen(wx.Pen(wx.Colour(180, 180, 180), 4))
