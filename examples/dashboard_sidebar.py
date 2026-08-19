@@ -672,8 +672,8 @@ class CanvasHoist(wx.Panel):
         width, height = self.GetClientSize()
 
         # Background
-        #gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
-        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
+        gc.SetBrush(wx.Brush(wx.Colour(235, 240, 245)))
+        #gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
         gc.DrawRectangle(0, 0, width, height)
 
         # Gambar helicopter
