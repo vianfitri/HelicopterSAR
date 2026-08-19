@@ -76,7 +76,7 @@ class SidebarButton(wx.Control):
 import wx
 
 
-class SidebarButton_dis(wx.Control):
+'''class SidebarButton_dis(wx.Control):
 
     def __init__(self, parent, label):
         super().__init__(parent, size=(180, 50))
@@ -148,6 +148,7 @@ class SidebarButton_dis(wx.Control):
         tw, th = gc.GetTextExtent(self.label)
 
         gc.DrawText(self.label, (w - tw) / 2, (h - th) / 2)
+        '''
 
 # ==========================
 # Canvas Helicopter
@@ -825,7 +826,7 @@ class CanvasHoist(wx.Panel):
         # 4d. Teks Indikator Panjang Tali
         font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(font, wx.Colour(0, 0, 0))
-        gc.DrawText(f"{int(self.rope_length)} meter", self.slider_x - 15, self.slider_y_start + self.slider_height + 10)
+        gc.DrawText(f"{int(self.rope_length / 25)} meter", self.slider_x - 15, self.slider_y_start + self.slider_height + 10)
 
 # ==========================
 # Modern Card
@@ -1015,7 +1016,7 @@ class Dashboard(wx.Frame):
         sideSizer.AddSpacer(30)
 
         btn1 = SidebarButton(sidebar, "Monitoring")
-        btn2 = SidebarButton_dis(sidebar, "Settings")
+        btn2 = SidebarButton(sidebar, "Settings")
         btn2.Enable(False)
 
         sideSizer.Add(btn1, 0,
