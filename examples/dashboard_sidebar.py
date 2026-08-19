@@ -724,7 +724,7 @@ class CanvasHoist(wx.Panel):
         # 4d. Teks Indikator Panjang Tali
         font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         gc.SetFont(font, wx.Colour(0, 0, 0))
-        gc.DrawText(f"{int(self.rope_length)} px", self.slider_x - 15, self.slider_y_start + self.slider_height + 10)
+        gc.DrawText(f"{int(self.rope_length)} meter", self.slider_x - 15, self.slider_y_start + self.slider_height + 10)
 
 # ==========================
 # Modern Card
