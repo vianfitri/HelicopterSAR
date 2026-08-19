@@ -568,7 +568,7 @@ class CanvasHoist(wx.Panel):
 
         # Load gambar
         self.imageScale = 0.15
-        image = wx.Image("examples/images/bell412pps.png")
+        image = wx.Image("examples/images/heli_R.png")
         imageWidth = int(round(image.GetWidth() * self.imageScale))
         imageHeight = int(round(image.GetHeight() * self.imageScale))
         image = image.Scale(
