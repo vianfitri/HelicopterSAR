@@ -26,10 +26,24 @@ class HelicopterCanvas(wx.Panel):
         sebagai pengganti file PNG eksternal.
         """
         size = 200
-        bmp = wx.Bitmap(size, size, 32)
+
+        # Buat RGBA image dengan alpha = 0
+        image = wx.Image(size, size, clear=True)
+
+        # Pastikan alpha channel tersedia
+        image.InitAlpha()
+
+        # Seluruh pixel transparan
+        alpha = bytearray(size * size)
+        image.SetAlpha(alpha)
+
+        # Buat bitmap dari image
+        bmp = wx.Bitmap(image)
+
+        #bmp = wx.Bitmap(size, size, 32)
         dc = wx.MemoryDC(bmp)
-        dc.SetBackground(wx.Brush(wx.Colour(0, 0, 0, 0))) # Fully transparent background
-        dc.Clear()
+        #dc.SetBackground(wx.Brush(wx.Colour(0, 0, 0, 0))) # Fully transparent background
+        #dc.Clear()
         
         # Gambar bayangan bilah rotor (seperti efek motion blur)
         gc = wx.GraphicsContext.Create(dc)
