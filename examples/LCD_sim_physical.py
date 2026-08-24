@@ -27,7 +27,7 @@ TFT_PHYSICAL_HEIGHT_MM = 10.8
 #
 # Ini BUKAN PPI TFT.
 #
-MONITOR_PPI = 96
+MONITOR_PPI = 141
 
 
 # ============================================================
@@ -39,7 +39,7 @@ MODE_1X = "1x"
 MODE_ZOOM = "zoom"
 
 
-DISPLAY_MODE = MODE_ZOOM
+DISPLAY_MODE = MODE_PHYSICAL
 
 # Hanya digunakan jika MODE_ZOOM
 ZOOM = 6
