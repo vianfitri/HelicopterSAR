@@ -44,11 +44,11 @@ class AudioEngine:
             # fallback silent sound untuk testing jika file belum ada
             return pygame.mixer.Sound(buffer=bytes([0] * 44100))
 
-        self.snd_heli = get_sound("audio/helicopter.wav")
-        self.snd_wind = get_sound("audio/wind.wav")
-        self.snd_waves = get_sound("audio/ocean_waves.wav")
-        self.snd_raindrop = get_sound("audio/rain_drop.wav")
-        self.snd_rainhiss = get_sound("audio/rain_hiss.wav")
+        self.snd_heli = get_sound("examples/audio/bell412_hover.wav")
+        self.snd_wind = get_sound("examples/audio/wind.wav")
+        self.snd_waves = get_sound("examples/audio/ocean_waves.wav")
+        self.snd_raindrop = get_sound("examples/audio/rain_drop.wav")
+        self.snd_rainhiss = get_sound("examples/audio/rain_hiss.wav")
 
     def start_all_loops(self):
         """ Memulai seluruh audio secara simultan dalam keadaan loop """
