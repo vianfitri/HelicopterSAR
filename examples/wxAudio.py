@@ -274,9 +274,9 @@ class AudioSettingsFrame(wx.Frame):
             btn.SetForegroundColour(self.TEXT_COLOR)
             btn_sizer.Add(btn, 1, wx.RIGHT, 5)
             
-        self.btn_light.Bind(wx.EVT_BUTTON, lambda e: self.set_rain('light'))
-        self.btn_mod.Bind(wx.EVT_BUTTON, lambda e: self.set_rain('moderate'))
-        self.btn_heavy.Bind(wx.EVT_BUTTON, lambda e: self.set_rain('heavy'))
+        self.btn_light.Bind(wx.EVT_BUTTON, lambda e: self.trigger_rain_transition('light'))
+        self.btn_mod.Bind(wx.EVT_BUTTON, lambda e: self.trigger_rain_transition('moderate'))
+        self.btn_heavy.Bind(wx.EVT_BUTTON, lambda e: self.trigger_rain_transition('heavy'))
         
         right_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.BOTTOM, 15)
         
