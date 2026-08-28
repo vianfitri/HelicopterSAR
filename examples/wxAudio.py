@@ -132,21 +132,20 @@ class AudioEngine:
         # Return True jika transisi sudah selesai sepenuhnya
         return (self.rain_drop_ratio == self.target_drop_ratio) and (self.rain_hiss_ratio == self.target_hiss_ratio)
 
-
-    def set_rain_preset(self, mode):
-        """ Pengaturan rasio hujan & preset petir sinkron """
-        if mode == 'light':
-            self.rain_drop_ratio = 0.60
-            self.rain_hiss_ratio = 0.15
-        elif mode == 'moderate':
-            self.rain_drop_ratio = 0.80
-            self.rain_hiss_ratio = 0.50
-        elif mode == 'heavy':
-            self.rain_drop_ratio = 1.00
-            self.rain_hiss_ratio = 0.95
-            
-        self.current_thunder_preset = mode
-        self.update_volumes()
+    #def set_rain_preset(self, mode):
+    #    """ Pengaturan rasio hujan & preset petir sinkron """
+    #    if mode == 'light':
+    #        self.rain_drop_ratio = 0.60
+    #        self.rain_hiss_ratio = 0.15
+    #    elif mode == 'moderate':
+    #        self.rain_drop_ratio = 0.80
+    #        self.rain_hiss_ratio = 0.50
+    #    elif mode == 'heavy':
+    #        self.rain_drop_ratio = 1.00
+    #        self.rain_hiss_ratio = 0.95
+    #        
+    #    self.current_thunder_preset = mode
+    #    self.update_volumes()
 
     def get_next_thunder_interval(self):
         """ Mengambil jeda detik acak berdasarkan preset aktif """
@@ -196,6 +195,10 @@ class AudioSettingsFrame(wx.Frame):
         # Timer untuk memicu suara petir
         self.thunder_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_thunder_timer, self.thunder_timer)
+
+        # Timer untuk transisi halus preset hujan (50ms interval update)
+        self.transition_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_transition_step, self.transition_timer)
         
         # UI Palette
         self.BG_COLOR = wx.Colour(11, 18, 26)
@@ -383,9 +386,24 @@ class AudioSettingsFrame(wx.Frame):
         self.sld_thunder.val_lbl.SetLabel(f"{val}%")
         self.audio.thunder_vol = val / 100.0
 
-    def set_rain(self, mode):
-        self.audio.set_rain_preset(mode)
+    # --- Transisi Preset Hujan ---
+    def trigger_rain_transition(self, mode):
+        self.audio.set_rain_target(mode)
         self.schedule_next_thunder()
+
+        # Mulai timer transisi halus (setiap 50ms)
+        if not self.transition_timer.IsRunning():
+            self.transition_timer.Start(50)
+
+    def on_transition_step(self, event):
+        """ Callback timer yang memperbarui slider/volume secara bertahap """
+        is_complete = self.audio.step_rain_transition(step_speed=0.03)
+        if is_complete:
+            self.transition_timer.Stop()
+
+    #def set_rain(self, mode):
+    #    self.audio.set_rain_preset(mode)
+    #    self.schedule_next_thunder()
 
     # --- Pengatur Interval Petir ---
     def schedule_next_thunder(self):
