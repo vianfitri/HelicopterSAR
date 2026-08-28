@@ -39,6 +39,9 @@ class AudioEngine:
         # Rasio Hujan Internal (Raindrop vs Rain Hiss)
         self.rain_drop_ratio = 0.80
         self.rain_hiss_ratio = 0.50
+
+        self.target_drop_ratio = 0.80
+        self.target_hiss_ratio = 0.50
         
         # Preset Interval Petir (Min Sec, Max Sec)
         self.thunder_presets = {
@@ -89,6 +92,46 @@ class AudioEngine:
         
         self.ch_thunder.set_volume(final_vol)
         self.ch_thunder.play(selected_thunder)
+
+    def set_rain_target(self, mode):
+        """ menentukan target rasio hujan baru untuk dituju oleh transisi halus"""
+        if mode == 'light':
+            self.target_drop_ratio = 0.60
+            self.target_hiss_ratio = 0.15
+        elif mode == 'moderate':
+            self.target_drop_ratio = 0.80
+            self.target_hiss_ratio = 0.50
+        elif mode == 'heavy':
+            self.target_drop_ratio = 1.00
+            self.target_hiss_ratio = 0.95
+
+        self.current_thunder_preset = mode
+
+    def step_rain_transition(self, step_speed=0.02):
+        """ Menggeser rasio hujan mendekati target secara bertahap (Smooth Crossfade)"""
+        # Transisi Drop Ratio
+        if abs(self.rain_drop_ratio - self.target_drop_ratio) > step_speed:
+            if self.rain_drop_ratio < self.target_drop_ratio:
+                self.rain_drop_ratio += step_speed
+            else:
+                self.rain_drop_ratio -= step_speed
+        else:
+            self.rain_drop_ratio = self.target_drop_ratio
+
+        # Transisi Hiss Ratio
+        if abs(self.rain_hiss_ratio - self.target_hiss_ratio) > step_speed:
+            if self.rain_hiss_ratio < self.target_hiss_ratio:
+                self.rain_hiss_ratio += step_speed
+            else:
+                self.rain_hiss_ratio -= step_speed
+        else:
+            self.rain_hiss_ratio = self.target_hiss_ratio
+
+        self.update_volumes()
+
+        # Return True jika transisi sudah selesai sepenuhnya
+        return (self.rain_drop_ratio == self.target_drop_ratio) and (self.rain_hiss_ratio == self.target_hiss_ratio)
+
 
     def set_rain_preset(self, mode):
         """ Pengaturan rasio hujan & preset petir sinkron """
