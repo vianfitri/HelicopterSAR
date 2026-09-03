@@ -24,18 +24,29 @@ class CustomPanel(wx.Panel):
 
         # 2. Buat Path Khusus untuk Garis Sisi Kiri
         path = gc.CreatePath()
-        
+
+        import math
+
         # Mulai dari sudut kanan atas lengkungan kiri-bawah (titik bawah sisi kiri)
-        path.MoveToPoint(x, y + height - radius)
+        path.MoveToPoint(x + radius, y)
+        path.AddLineToPoint(x + width - radius, y)
+        path.AddArc(x+width-radius, y + radius, radius, 1.5 * math.pi, 0, True)
         
         # Tarik garis lurus ke atas sepanjang sisi kiri
-        path.AddLineToPoint(x, y + radius)
+        #path.AddLineToPoint(x, y + height)
+
+        #import math
+        #path.AddArc(x + radius, y + height - radius, radius, .5 * math.pi, math.pi, True)
+
+        #path.AddLineToPoint(x, y + radius)
         
         # Gambar lengkungan sudut kiri-atas
         # Arc(x, y, radius, startAngle, endAngle, clockwise)
         # pi = sudut 180 deg (kiri), 1.5 * pi = sudut 270 deg (atas)
-        import math
-        path.AddArc(x + radius, y + radius, radius, math.pi, 1.5 * math.pi, True)
+        #import math
+        #path.AddArc(x + radius, y + radius, radius, math.pi, 1.5 * math.pi, True)
+
+        path.CloseSubpath()
 
         # 3. Gambar Garis Sisi Kiri dengan Warna Berbeda (Misal: Biru)
         left_border_color = wx.Colour(0, 120, 215)
