@@ -55,6 +55,10 @@ class CustomPanel(wx.Panel):
         gc.SetPen(wx.Pen(left_border_color, border_width))
         gc.StrokePath(path)
 
+        default_font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        print("Nama Font    :", default_font.GetFaceName())
+        print("Ukuran       :", default_font.GetPointSize())
+
 class MainFrame(wx.Frame):
     def __init__(self):
         super().__init__(None, title="Custom Rounded Rectangle", size=(300, 200))
