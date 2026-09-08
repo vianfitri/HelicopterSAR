@@ -138,7 +138,8 @@ class MainFrame(wx.Frame):
 
     def on_start(self, event):
         # Masukkan IP Address dan Port PLC Haiwell Anda
-        plc_ip = "192.168.1.10"  # Sesuaikan IP PLC
+        #plc_ip = "192.168.1.10"  # Sesuaikan IP PLC
+        plc_ip = "127.0.0.1"
         plc_port = 502
 
         self.btn_start.Disable()

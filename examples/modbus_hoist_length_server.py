@@ -4,42 +4,41 @@ import sys
 import threading
 import time
 
-# Impor Pymodbus v3.8+ yang valid
-from pymodbus.datastore import ModbusSequentialDataBlock, ModbusServerContext
+from pymodbus.datastore import (
+    ModbusSequentialDataBlock,
+    ModbusServerContext,
+    ModbusSlaveContext,
+)
 from pymodbus.server import StartAsyncTcpServer
 
-# Setup Data Store untuk Discrete Input (di) dan Coils (co)
-# Inisialisasi address 0 dan 1 dengan nilai False
-data_block = ModbusSequentialDataBlock(1, [False, False])
+# 1. Inisialisasi Data Block (Address 0, isi 2 boolean [UP, DOWN])
+data_block = ModbusSequentialDataBlock(0, [False] * 100)
 
-# Pada Pymodbus 3.8+, ModbusServerContext dapat langsung menerima data block
-# di=Discrete Inputs, co=Coils
-context = ModbusServerContext(
-    slaves={
-        1: ModbusServerContext(
-            di=data_block,
-            co=data_block,
-        )
-    },
-    single=True,
+# 2. Inisialisasi Slave Context & Server Context (Sintaks Standar Pymodbus 3.6.8)
+slave_context = ModbusSlaveContext(
+    di=data_block,  # Function Code 2 (Discrete Input)
+    co=data_block,  # Function Code 1 (Coils)
 )
+context = ModbusServerContext(slaves=slave_context, single=True)
 
 
 def update_modbus_status(up_state, down_state):
     """Memperbarui nilai Discrete Inputs dan Coils di Modbus Server."""
-    # Memperbarui Discrete Inputs (Address 0 & 1)
-    context[1].setValues(2, 1, [up_state, down_state])  # 2 = Discrete Input
-    # Memperbarui Coils (Address 0 & 1)
-    context[1].setValues(1, 1, [up_state, down_state])  # 1 = Coils
+    # Mengambil slave context (single=True otomatis memetakan ke slave 0/1)
+    slave = context[0]
+    
+    # setValues(function_code, address, values)
+    slave.setValues(2, 0, [up_state, down_state])  # 2 = Discrete Input
+    slave.setValues(1, 0, [up_state, down_state])  # 1 = Coils
 
 
 def keyboard_control_loop():
-    """Loop untuk membaca input keyboard tanpa memblokir Modbus Server."""
+    """Loop penanganan input keyboard untuk simulasi tombol UP/DOWN."""
     up = False
     down = False
 
     print("\n" + "=" * 50)
-    print("      PLC HAIWELL MODBUS TCP SIMULATOR (Pymodbus 3.x)      ")
+    print("      PLC HAIWELL MODBUS TCP SIMULATOR (v3.6.8)     ")
     print("=" * 50)
     print("Gunakan kontrol keyboard berikut:")
     print("  [ u ] -> Toggle Status UP   (ON/OFF)")
@@ -79,10 +78,10 @@ def keyboard_control_loop():
                 print("\nMenghentikan Simulator...")
                 sys.exit(0)
 
-            # Update status ke server Modbus
+            # Update nilai ke server Modbus
             update_modbus_status(up, down)
 
-            # Tampilkan status terbaru di konsol
+            # Cetak status ke konsol
             str_up = "ON " if up else "OFF"
             str_down = "ON " if down else "OFF"
             print(
@@ -95,13 +94,13 @@ def keyboard_control_loop():
 
 
 async def main():
-    # Jalankan Keyboard Controller di thread terpisah
+    # Jalankan controller keyboard di background thread
     control_thread = threading.Thread(target=keyboard_control_loop, daemon=True)
     control_thread.start()
 
     print("Menjalankan Modbus TCP Server pada 0.0.0.0:502 ...")
     
-    # Jalankan Modbus Async TCP Server tanpa memerlukan parameter identity
+    # Jalankan Async Modbus TCP Server
     await StartAsyncTcpServer(
         context=context,
         address=("0.0.0.0", 502),
@@ -113,8 +112,6 @@ if __name__ == "__main__":
         asyncio.run(main())
     except PermissionError:
         print("\n[ERROR] Port 502 membutuhkan hak akses Administrator/Root.")
-        print(
-            "Silakan jalankan terminal sebagai Administrator, atau gunakan port 5020."
-        )
+        print("Silakan run terminal sebagai Administrator, atau ganti port ke 5020.")
     except Exception as e:
         print(f"\n[ERROR] Server berhenti: {e}")
