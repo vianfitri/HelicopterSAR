@@ -4,7 +4,8 @@ import wx
 from pymodbus.client import ModbusTcpClient
 
 # Konfigurasi Koneksi PLC Haiwell AT16S0R
-PLC_IP = "192.168.1.111"
+#PLC_IP = "192.168.1.111"
+PLC_IP = "127.0.0.1"
 PLC_PORT = 502
 
 class ModbusWorkerThread(threading.Thread):
