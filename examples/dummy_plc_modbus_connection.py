@@ -3,7 +3,7 @@ import time
 import wx
 from pymodbus.client import ModbusTcpClient
 
-PLC_IP = "127.0.0.1"  # Ubah ke IP Server Simulator / PLC Haiwell asli
+PLC_IP = "192.168.1.121"  # Ubah ke IP Server Simulator / PLC Haiwell asli
 PLC_PORT = 502
 
 # Konfigurasi Kecepatan Hoist
