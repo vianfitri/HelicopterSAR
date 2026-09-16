@@ -228,7 +228,7 @@ class MainFrame(wx.Frame):
     def on_start(self, event):
         plc_ip = "127.0.0.1"
         plc_port = 5020
-        wheel_diameter = 0.1   # Diameter roda (meter)
+        wheel_diameter = 0.25   # Diameter roda (meter)
         ppr = 1024             # PPR Encoder Autonics E58SC10
 
         self.btn_start.Disable()
