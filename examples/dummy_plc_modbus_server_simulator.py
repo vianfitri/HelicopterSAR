@@ -1,6 +1,7 @@
 import random
 import threading
 import time
+import keyboard  # Mengontrol keyboard langsung dari Server
 from pymodbus.datastore import (
     ModbusServerContext,
     ModbusSequentialDataBlock,
@@ -27,9 +28,40 @@ slave_store = ModbusSlaveContext(
 context = ModbusServerContext(slaves=slave_store, single=True)
 
 
+def get_interlocked_y8_y9():
+    """Simulasi acak Y8 (FRWD Lamp) & Y9 (RVRS Lamp) dengan interlock."""
+    choice = random.choice(["OFF_OFF", "Y8_ON", "Y9_ON"])
+    if choice == "Y8_ON":
+        return True, False
+    elif choice == "Y9_ON":
+        return False, True
+    else:
+        return False, False
+
+
+def check_keyboard_hoist_control():
+    """
+    Membaca tombol keyboard server dan mengembalikan nilai Y10 (Hoist Up) & Y11 (Hoist Down)
+    dengan aturan Interlock (TIDAK BISA ON BERSAMAAN).
+    """
+    up_pressed = keyboard.is_pressed('w') or keyboard.is_pressed('up')
+    down_pressed = keyboard.is_pressed('s') or keyboard.is_pressed('down')
+
+    # Logika Interlock:
+    # Jika Panah Atas/W ditekan -> Y10 = True, Y11 = False
+    # Jika Panah Bawah/S ditekan -> Y10 = False, Y11 = True
+    # Jika keduanya ditekan atau tidak ditekan -> Y10 = False, Y11 = False
+    if up_pressed and not down_pressed:
+        return True, False
+    elif down_pressed and not up_pressed:
+        return False, True
+    else:
+        return False, False
+
+
 def simulate_plc_data():
-    """Thread untuk mensimulasikan perubahan data PLC."""
-    print("[Simulator] Simulasi data PLC berjalan...")
+    """Thread simulator data PLC di Server."""
+    print("[Simulator] Simulasi data PLC & Listener Keyboard berjalan...")
 
     rpm = 1200
     speed2 = 50
@@ -37,8 +69,7 @@ def simulate_plc_data():
 
     while True:
         try:
-            # 1. Update Discrete Inputs X7 - X10 (Function Code = 2)
-            # Parameter posisional: (fx, address, values)
+            # 1. Update Discrete Inputs X7 - X10 (FC 2 / Discrete Inputs) secara acak
             x_values = [
                 random.choice([True, False]),  # X7 (FRWD1)
                 random.choice([True, False]),  # X8 (FRWD2)
@@ -47,27 +78,26 @@ def simulate_plc_data():
             ]
             slave_store.setValues(2, 7, x_values)
 
-            # 2. Update Output Lampu Y8 - Y11 (Function Code = 1)
-            y_values = [
-                random.choice([True, False]),  # Y8 (FRWD Lamp)
-                random.choice([True, False]),  # Y9 (RVRS Lamp)
-                random.choice([True, False]),  # Y10 (Hoist Up Lamp)
-                random.choice([True, False]),  # Y11 (Hoist Down Lamp)
-            ]
+            # 2. Update Y8 & Y9 secara acak (dengan interlock)
+            y8_state, y9_state = get_interlocked_y8_y9()
+
+            # 3. Update Y10 & Y11 dari KONTROL KEYBOARD SERVER (dengan interlock)
+            y10_state, y11_state = check_keyboard_hoist_control()
+
+            # Tulis Y8, Y9, Y10, Y11 ke Modbus Data Store (FC 1, Offset 8)
+            y_values = [y8_state, y9_state, y10_state, y11_state]
             slave_store.setValues(1, 8, y_values)
 
-            # 3. Update Register V32, V34, V102 (Function Code = 3)
-            rpm = max(800, min(1800, rpm + random.randint(-50, 50)))
-            speed2 = max(10, min(100, speed2 + random.randint(-5, 5)))
-            hoist_load = max(
-                100, min(1000, hoist_load + random.randint(-20, 20))
-            )
+            # 4. Update Register V32, V34, V102 (FC 3 / Holding Registers)
+            rpm = max(800, min(1800, rpm + random.randint(-20, 20)))
+            speed2 = max(10, min(100, speed2 + random.randint(-2, 2)))
+            hoist_load = max(100, min(1000, hoist_load + random.randint(-10, 10)))
 
             slave_store.setValues(3, 32, [rpm])         # V32 (RPM)
             slave_store.setValues(3, 34, [speed2])      # V34 (SPEED2)
             slave_store.setValues(3, 102, [hoist_load]) # V102 (Hoist Load)
 
-            time.sleep(1)
+            time.sleep(0.1) # Responsivitas keyboard cepat (100ms)
 
         except Exception as e:
             print(f"[Simulator Error] {e}")
@@ -75,21 +105,22 @@ def simulate_plc_data():
 
 
 if __name__ == "__main__":
+    # Jalankan background thread untuk simulasi & keyboard reader
     sim_thread = threading.Thread(target=simulate_plc_data, daemon=True)
     sim_thread.start()
 
-    print("==================================================")
-    print(" Modbus TCP Server Simulator PLC Haiwell Running  ")
-    print(f" Host: {SERVER_HOST} | Port: {SERVER_PORT}       ")
-    print(" Tekan Ctrl+C untuk menghentikan server           ")
-    print("==================================================")
+    print("==========================================================")
+    print("  Modbus TCP Server Simulator PLC Haiwell (Keyboard Server)")
+    print(f"  Host: {SERVER_HOST} | Port: {SERVER_PORT}               ")
+    print("----------------------------------------------------------")
+    print("  KONTROL KEYBOARD SERVER:                                ")
+    print("   - Tahan 'W' atau 'Panah Atas'  : Y10 (Hoist Up) ON     ")
+    print("   - Tahan 'S' atau 'Panah Bawah' : Y11 (Hoist Down) ON   ")
+    print("   - Lepas Tombol                 : Y10 & Y11 OFF         ")
+    print("==========================================================")
 
     try:
         StartTcpServer(context=context, address=(SERVER_HOST, SERVER_PORT))
     except PermissionError:
-        print(
-            "\n[Error] Menjalankan port 502 memerlukan hak akses Administrator/Root."
-        )
-        print(
-            "Silakan jalankan script ini dengan Terminal/CMD sebagai Administrator."
-        )
+        print("\n[Error] Membaca keyboard & port 502 memerlukan hak akses Administrator/Root.")
+        print("Silakan jalankan Command Prompt / Terminal sebagai Administrator.")
