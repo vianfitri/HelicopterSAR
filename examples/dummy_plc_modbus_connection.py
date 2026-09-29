@@ -3,7 +3,7 @@ import time
 import wx
 from pymodbus.client import ModbusTcpClient
 
-PLC_IP = "127.0.0.1"
+PLC_IP = "192.168.1.111"
 PLC_PORT = 502
 
 # Konfigurasi Kecepatan Hoist
