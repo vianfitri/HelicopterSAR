@@ -36,10 +36,16 @@ class SafeDataBlock(ModbusSequentialDataBlock):
         super().__init__(0, [default_val] * 65536)
         self.name = name
         self.update_callback = update_callback
+        self.paired_block = None  # Referensi ke IR jika ini HR (atau sebaliknya)
 
     def getValues(self, address, count=1):
         values = super().getValues(address, count)
-        if address >= 9000 and self.name == "HR":
+        # Log jika client membaca register ADAM-5024 (Slot 0, 1, 2 -> Addr 1..24)
+        if 1 <= address <= 24 and self.name in ("HR", "IR"):
+            signals.log_event.emit(
+                f"[READ 5024 {self.name}] Addr: {address} | Cnt: {count} | Val: {values}"
+            )
+        elif address >= 9000 and self.name == "HR":
             ascii_out = adam_registers_to_ascii(values)
             signals.log_event.emit(
                 f"[READ {self.name}] Addr: {address} | Cnt: {count} | ASCII: '{ascii_out.strip()}' | Raw: {[hex(v) for v in values]}"
@@ -68,7 +74,7 @@ class SafeDataBlock(ModbusSequentialDataBlock):
             signals.log_event.emit(f"[ASCII CMD PARSED] -> '{cmd_str}'")
 
             # =========================================================
-            # 1. PENANGANAN SET ANALOG OUTPUT ADAM-5024 (#01S0C2+20.000)
+            # 1. PENANGANAN SET ANALOG OUTPUT ADAM-5024 (#01S0C2+20.000 / #01S2C0+05.000)
             # =========================================================
             if cmd_str.startswith("#") and "S" in cmd_str and "C" in cmd_str:
                 try:
@@ -77,20 +83,31 @@ class SafeDataBlock(ModbusSequentialDataBlock):
                     slot = int(cmd_str[s_idx + 1 : c_idx])
                     chan = int(cmd_str[c_idx + 1])
                     
-                    # Ambil nilai arus (mA) dari sisa string (misal '+20.000')
-                    ao_ma = float(cmd_str[c_idx + 2 :])
+                    # Ambil nilai engineering unit dari sisa string (misal '+20.000' atau '+05.000')
+                    ao_val = float(cmd_str[c_idx + 2 :])
 
-                    # Konversi 4.0 - 20.0 mA ke Raw 12-bit (0 - 4095)
-                    ma_clamped = max(4.0, min(ao_ma, 20.0))
-                    raw_val = int(round(((ma_clamped - 4.0) / 16.0) * 4095.0))
+                    if slot == 2:
+                        # Konversi 0.0 - 10.0 V ke Raw 12-bit (0 - 4095)
+                        v_clamped = max(0.0, min(ao_val, 10.0))
+                        raw_val = int(round((v_clamped / 10.0) * 4095.0))
+                        unit_str = "V"
+                    else:
+                        # Konversi 4.0 - 20.0 mA ke Raw 12-bit (0 - 4095) untuk Slot 0 & 1
+                        ma_clamped = max(4.0, min(ao_val, 20.0))
+                        raw_val = int(round(((ma_clamped - 4.0) / 16.0) * 4095.0))
+                        unit_str = "mA"
 
-                    # Update GUI & Datastore register AO
-                    signals.ao_updated.emit(slot, chan, raw_val)
+                    # Update Datastore register AO di HR & IR (1-based)
                     reg_addr = (slot * 8) + chan + 1
                     self.values[reg_addr] = raw_val
+                    if self.paired_block is not None:
+                        self.paired_block.values[reg_addr] = raw_val
+
+                    # Update GUI
+                    signals.ao_updated.emit(slot, chan, raw_val)
 
                     signals.log_event.emit(
-                        f"[ADAM-5024 SET] Slot {slot} Ch {chan} -> {ao_ma:.2f} mA (Raw: {raw_val})"
+                        f"[ADAM-5024 SET] Slot {slot} Ch {chan} -> {ao_val:.2f} {unit_str} (Raw: {raw_val})"
                     )
                     response_str = ">"  # Balasan wajib Advantech jika perintah '#' sukses
                 except Exception as e:
@@ -115,8 +132,10 @@ class SafeDataBlock(ModbusSequentialDataBlock):
                 elif "S" in cmd_str and cmd_str.endswith("6") and "C" not in cmd_str:
                     response_str = "!01FF"        # Channel Enable Mask: FF = semua 8 channel aktif (True)
                 elif "C" in cmd_str and cmd_str.endswith("B"):
-                    if slot in (0, 1, 2):
+                    if slot in (0, 1):
                         response_str = "!013100"   # 0x31 = 49 Desimal (mA_4To20 ADAM-5024)
+                    elif slot == 2:
+                        response_str = "!013200"   # 0x32 = 50 Desimal (V_0To10 ADAM-5024)
                     elif slot == 4:
                         response_str = "!010A00"   # 0x0A = 10 Desimal (mA_4To20 ADAM-5017)
                     elif slot == 6:
@@ -132,18 +151,20 @@ class SafeDataBlock(ModbusSequentialDataBlock):
                     else:
                         response_str = "!010000"
                 elif cmd_str.endswith("M"):
-                    if slot in (0, 1, 2):
-                        response_str = "!0124"   # ADAM-5024
-                    elif slot == 3:
-                        response_str = "!0156"   # ADAM-5056
-                    elif slot == 4:
-                        response_str = "!0117"   # ADAM-5017
-                    elif slot == 5:
-                        response_str = "!0180"   # ADAM-5080
-                    elif slot == 6:
-                        response_str = "!0118"   # ADAM-5018
-                    else:
-                        response_str = "!01FF"
+                    if slot == 3:
+                        response_str = "!010000"
+                    # if slot in (0, 1, 2):
+                    #     response_str = "!0124"   # ADAM-5024
+                    # elif slot == 3:
+                    #     response_str = "!0156"   # ADAM-5056
+                    # elif slot == 4:
+                    #     response_str = "!0117"   # ADAM-5017
+                    # elif slot == 5:
+                    #     response_str = "!0180"   # ADAM-5080
+                    # elif slot == 6:
+                    #     response_str = "!0118"   # ADAM-5018
+                    # else:
+                    #     response_str = "!01FF"
                 elif cmd_str.endswith("B") or cmd_str.endswith("F"):
                     response_str = "!0100"
 
@@ -191,11 +212,12 @@ class ModbusServerThread(QThread):
         
         hr_block = SafeDataBlock("HR", default_val=0, update_callback=self._on_hr_write)
         ir_block = SafeDataBlock("IR", default_val=0, update_callback=self._on_ir_write)
+        hr_block.paired_block = ir_block  # Sinkronkan HR -> IR
         co_block = SafeDataBlock("CO", default_val=False, update_callback=self._on_co_write)
         di_block = SafeDataBlock("DI", default_val=False)
 
         slave_store = ModbusSlaveContext(
-            hr=hr_block, ir=ir_block, co=co_block, di=di_block, zero_mode=True
+            hr=hr_block, ir=ir_block, co=co_block, di=di_block, zero_mode=False
         )
         self.context = ModbusServerContext(slaves=slave_store, single=True)
 
@@ -217,9 +239,16 @@ class ModbusServerThread(QThread):
         fx_code = 3 if register_type == "HR" else (4 if register_type == "IR" else 1)
         values = value_or_values if isinstance(value_or_values, list) else [value_or_values]
         
-        self.context[0].setValues(fx_code, address, values)
+        # Karena zero_mode=False pada ModbusSlaveContext otomatis menambah +1,
+        # kurangi 1 agar data tersimpan tepat di indeks 1-based (misal address 1 -> index 1)
+        zero_based_addr = max(0, address - 1)
+        self.context[0].setValues(fx_code, zero_based_addr, values)
 
     def _on_hr_write(self, address, values):
+        # Jangan proses mailbox ASCII sebagai slot I/O
+        if address >= 9000:
+            return
+        
         offset = address - 1 if address > 0 else 0
         for idx, val in enumerate(values):
             curr_offset = offset + idx
@@ -228,6 +257,10 @@ class ModbusServerThread(QThread):
 
             if slot in (0, 1, 2) and chan_offset < 4:
                 signals.ao_updated.emit(slot, chan_offset, val)
+
+                # Sinkronkan HR <-> IR agar FC03 & FC04 terbaca sama
+                self.context[0].store['i'].values[address + idx] = val
+
             elif slot == 4 and chan_offset < 8:
                 signals.ai_updated.emit(slot, chan_offset, val)
             elif slot == 5 and chan_offset < 8:
@@ -307,25 +340,31 @@ class ADAM5000GUI(QMainWindow):
 
         # Slot 0-2 (AO)
         for slot in range(3):
-            grp = QGroupBox(f"Slot {slot}: ADAM-5024 (AO)")
+            is_volt = (slot == 2)
+            range_title = "0-10V" if is_volt else "4-20mA"
+            unit_header = "V" if is_volt else "mA"
+            default_eng = "0.00 V" if is_volt else "4.00 mA"
+
+            grp = QGroupBox(f"Slot {slot}: ADAM-5024 ({range_title})")
             grid = QGridLayout(grp)
             grid.addWidget(QLabel("<b>Ch</b>"), 0, 0)
             grid.addWidget(QLabel("<b>Raw</b>"), 0, 1)
-            grid.addWidget(QLabel("<b>mA</b>"), 0, 2)
+            grid.addWidget(QLabel(f"<b>{unit_header}</b>"), 0, 2)
 
             self.ao_widgets[slot] = []
             for ch in range(4):
                 lbl_ch = QLabel(f"{ch}:")
                 txt_raw = QLineEdit("0")
-                txt_ma = QLineEdit("4.00 mA")
-                for txt in (txt_raw, txt_ma):
+                txt_eng = QLineEdit(default_eng)
+                for txt in (txt_raw, txt_eng):
                     txt.setReadOnly(True)
                     txt.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
                 grid.addWidget(lbl_ch, ch + 1, 0)
                 grid.addWidget(txt_raw, ch + 1, 1)
-                grid.addWidget(txt_ma, ch + 1, 2)
-                self.ao_widgets[slot].append({"raw": txt_raw, "ma": txt_ma})
+                grid.addWidget(txt_eng, ch + 1, 2)
+                # Gunakan key 'eng' (atau tetap 'ma' jika tidak ingin mengubah nama dict)
+                self.ao_widgets[slot].append({"raw": txt_raw, "eng": txt_eng})
             row1_layout.addWidget(grp, stretch=2)
 
         # Slot 3 (DO)
@@ -432,16 +471,22 @@ class ADAM5000GUI(QMainWindow):
                 f"[MANUAL INJECT] ADAM-5080 (Slot 5 Ch {chan}) -> 32-bit Value: {val} (Low Reg {address}: {low_word}, High Reg {address+1}: {high_word})"
             )
 
-        # 2. Handling Slot 0-2 (AO), Slot 4 (AI), Slot 6 (TC) - 16-bit
+        # 2. Handling Slot 0-2 (AO - 12-bit), Slot 4 (AI - 16-bit), Slot 6 (TC - 16-bit)
         elif slot in (0, 1, 2, 4, 6):
-            address = (slot * 8) + chan + 1
-            val_16bit = min(val, 65535)
+            if slot in (0, 1, 2) and chan >= 4:
+                signals.log_event.emit(f"[ERROR] Slot {slot} (ADAM-5024) hanya mendukung Channel 0 - 3!")
+                return
 
-            self.server_thread.update_server_datastore("HR", address, val_16bit)
-            self.server_thread.update_server_datastore("IR", address, val_16bit)
+            address = (slot * 8) + chan + 1
+            # ADAM-5024 menggunakan DAC 12-bit (0 - 4095), sedangkan 5017/5018 menggunakan 16-bit (0 - 65535)
+            max_raw = 4095 if slot in (0, 1, 2) else 65535
+            val_clamped = min(val, max_raw)
+
+            self.server_thread.update_server_datastore("HR", address, val_clamped)
+            self.server_thread.update_server_datastore("IR", address, val_clamped)
             
             signals.log_event.emit(
-                f"[MANUAL INJECT] Slot {slot} Ch {chan} -> Address {address} Value: {val_16bit}"
+                f"[MANUAL INJECT] Slot {slot} Ch {chan} -> Register 1-Based: {address} | Raw: {val_clamped}"
             )
 
         # 3. Handling Slot 3 (DO - Coil)
@@ -462,9 +507,14 @@ class ADAM5000GUI(QMainWindow):
     def update_ao_ui(self, slot, chan, val):
         if slot in self.ao_widgets and chan < len(self.ao_widgets[slot]):
             val_clamped = max(0, min(val, 4095))
-            ma = 4.0 + (val_clamped / 4095.0) * 16.0
             self.ao_widgets[slot][chan]["raw"].setText(str(val))
-            self.ao_widgets[slot][chan]["ma"].setText(f"{ma:.2f} mA")
+
+            if slot == 2:
+                volt = (val_clamped / 4095.0) * 10.0
+                self.ao_widgets[slot][chan]["eng"].setText(f"{volt:.2f} V")
+            else:
+                ma = 4.0 + (val_clamped / 4095.0) * 16.0
+                self.ao_widgets[slot][chan]["eng"].setText(f"{ma:.2f} mA")
 
     def update_do_ui(self, slot, chan, state):
         if slot in self.do_labels and chan < len(self.do_labels[slot]):
